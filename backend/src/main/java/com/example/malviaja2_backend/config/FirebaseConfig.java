@@ -6,13 +6,19 @@ import com.google.firebase.FirebaseOptions;
 import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.beans.factory.annotation.Value;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 
 @Slf4j
 @Configuration
 public class FirebaseConfig {
+
+    @Value("${FIREBASE_CREDENTIALS:#{null}}")
+    private String firebaseCredentialsJson;
 
     @PostConstruct
     public void initialize() {
@@ -20,26 +26,36 @@ public class FirebaseConfig {
             return;
         }
         try {
-            InputStream serviceAccount = getClass().getClassLoader()
-                    .getResourceAsStream("firebase-service-account.json");
-
             FirebaseOptions options;
-            if (serviceAccount != null) {
+            
+            if (firebaseCredentialsJson != null && !firebaseCredentialsJson.trim().isEmpty()) {
+                // 1. Usar variable de entorno (Para Railway / Producción)
+                InputStream credentialsStream = new ByteArrayInputStream(firebaseCredentialsJson.getBytes(StandardCharsets.UTF_8));
                 options = FirebaseOptions.builder()
-                        .setCredentials(GoogleCredentials.fromStream(serviceAccount))
+                        .setCredentials(GoogleCredentials.fromStream(credentialsStream))
                         .build();
-                log.info("Firebase Admin SDK inicializado con service account.");
+                log.info("Firebase Admin SDK inicializado usando la variable de entorno FIREBASE_CREDENTIALS.");
             } else {
-                // Fallback para entornos cloud (Google Cloud Run, App Engine, etc.)
-                options = FirebaseOptions.builder()
-                        .setCredentials(GoogleCredentials.getApplicationDefault())
-                        .build();
-                log.info("Firebase Admin SDK inicializado con Application Default Credentials.");
+                // 2. Usar archivo local (Para Desarrollo)
+                InputStream serviceAccount = getClass().getClassLoader()
+                        .getResourceAsStream("firebase-service-account.json");
+                
+                if (serviceAccount != null) {
+                    options = FirebaseOptions.builder()
+                            .setCredentials(GoogleCredentials.fromStream(serviceAccount))
+                            .build();
+                    log.info("Firebase Admin SDK inicializado con archivo firebase-service-account.json.");
+                } else {
+                    // 3. Fallback
+                    options = FirebaseOptions.builder()
+                            .setCredentials(GoogleCredentials.getApplicationDefault())
+                            .build();
+                    log.info("Firebase Admin SDK inicializado con Application Default Credentials.");
+                }
             }
             FirebaseApp.initializeApp(options);
         } catch (IOException e) {
-            throw new IllegalStateException("No se pudo inicializar Firebase Admin SDK. " +
-                    "Asegúrate de tener firebase-service-account.json en src/main/resources.", e);
+            throw new IllegalStateException("No se pudo inicializar Firebase Admin SDK.", e);
         }
     }
 }
