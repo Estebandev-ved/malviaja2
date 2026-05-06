@@ -1,0 +1,117 @@
+.age-gate-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(18, 18, 18, 0.98); /* Oscuro, muy serio */
+  z-index: 9999; /* Por encima de TODO */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(15px);
+  -webkit-backdrop-filter: blur(15px);
+}
+
+.age-gate-modal {
+  max-width: 500px;
+  width: 90%;
+  padding: 3rem 2rem;
+  text-align: center;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
+  animation: modal-pop 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+
+@keyframes modal-pop {
+  from { opacity: 0; transform: scale(0.9) translateY(20px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+.age-gate-logo-container {
+  margin-bottom: 2rem;
+}
+
+.age-gate-logo {
+  height: 120px;
+  filter: drop-shadow(0 0 15px rgba(162, 219, 102, 0.4));
+}
+
+.levitate-slow {
+  animation: levitate-slow 6s ease-in-out infinite;
+}
+
+@keyframes levitate-slow {
+  0% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+  100% { transform: translateY(0); }
+}
+
+.age-gate-title {
+  font-size: 2rem;
+  margin-bottom: 1rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.age-gate-text {
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 1rem;
+  line-height: 1.6;
+}
+
+.age-gate-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-top: 2rem;
+}
+
+.age-btn {
+  width: 100%;
+  padding: 1rem;
+  font-size: 1.1rem;
+  letter-spacing: 0.5px;
+  border-radius: var(--radius-md);
+}
+
+.age-btn-reject {
+  background: transparent;
+  color: rgba(255, 255, 255, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  padding: 1rem;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border-radius: var(--radius-md);
+}
+
+.age-btn-reject:hover {
+  background: rgba(255, 255, 255, 0.05);
+  color: white;
+  border-color: rgba(255, 255, 255, 0.5);
+}
+
+.age-gate-error {
+  background: rgba(244, 67, 54, 0.1);
+  color: #ef5350;
+  padding: 1rem;
+  border-radius: var(--radius-sm);
+  border-left: 4px solid #ef5350;
+  margin: 1.5rem 0;
+  font-weight: bold;
+  animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both;
+}
+
+@keyframes shake {
+  10%, 90% { transform: translate3d(-1px, 0, 0); }
+  20%, 80% { transform: translate3d(2px, 0, 0); }
+  30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
+  40%, 60% { transform: translate3d(4px, 0, 0); }
+}
+
+.age-gate-footer {
+  margin-top: 2rem;
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.4);
+}

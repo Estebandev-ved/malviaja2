@@ -1,0 +1,12 @@
+package com.example.malviaja2_backend.repository;
+
+import com.example.malviaja2_backend.model.Pedido;
+import com.example.malviaja2_backend.model.Usuario;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
+import java.util.List;
+
+@Repository
+public interface PedidoRepository extends JpaRepository<Pedido, Long> {
+    List<Pedido> findByUsuarioOrderByFechaPedidoDesc(Usuario usuario);
+}
