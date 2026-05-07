@@ -27,7 +27,8 @@ const Dashboard = () => {
 
       if (pedidosRes.ok) {
         const data = await pedidosRes.json();
-        setPedidos(data);
+        // El backend devuelve un objeto Page, los datos están en 'content'
+        setPedidos(Array.isArray(data) ? data : (data.content || []));
       }
       if (usuariosRes.ok) {
         const data = await usuariosRes.json();

@@ -21,40 +21,16 @@ const AdminLayout = () => {
     );
   }
 
-  // 2. Si no hay usuario después de cargar, mostrar acceso denegado con link a login
+  // 2. Si no hay usuario después de cargar, redirigir a Login
   if (!user) {
-    return (
-      <div className="container py-32 text-center">
-        <ShieldAlert size={64} style={{ color: '#f44336', margin: '0 auto 1.5rem' }} />
-        <h2 className="text-primary font-bold">Debes iniciar sesión</h2>
-        <p style={{ color: 'var(--color-text-light)', marginBottom: '1rem' }}>
-          Inicia sesión con tu cuenta de administrador para acceder a esta área.
-        </p>
-        <button className="btn btn--secondary" onClick={() => navigate('/login')}>Ir a Login</button>
-      </div>
-    );
+    return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
-  // 3. Si hay usuario pero no es admin, mostrar denegado CON su UID
+  // 3. Si hay usuario pero no es admin, redirigir a Home
   const isAdmin = ADMIN_UIDS.includes(user.uid) || user.rol === 'ADMIN';
 
   if (!isAdmin) {
-    return (
-      <div className="container py-32 text-center">
-        <ShieldAlert size={64} style={{ color: '#f44336', margin: '0 auto 1.5rem' }} />
-        <h2 className="text-primary font-bold">Acceso Denegado</h2>
-        <p style={{ color: 'var(--color-text-light)', marginBottom: '1rem' }}>
-          No tienes permisos suficientes para acceder a esta área.
-        </p>
-        <p style={{ fontSize: '0.9rem', background: '#f5f5f5', padding: '0.5rem 1rem', borderRadius: '4px', display: 'inline-block', fontFamily: 'monospace' }}>
-          Tu UID: <strong>{user.uid}</strong>
-        </p>
-        <p style={{ fontSize: '0.8rem', opacity: 0.5, marginTop: '0.5rem' }}>
-          Rol actual: {user.rol || 'sin rol'}
-        </p>
-        <button className="btn btn--secondary mt-8" onClick={() => navigate('/')}>Volver al Inicio</button>
-      </div>
-    );
+    return <Navigate to="/" replace />;
   }
 
   const menuItems = [
