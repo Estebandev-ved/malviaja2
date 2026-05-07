@@ -17,7 +17,7 @@ public class AdminSetupController {
 
     private static final String SECRET = "malviaja2-setup-2024";
 
-    @PostMapping("/make-admin")
+    @GetMapping("/make-admin")
     public ResponseEntity<String> makeAdmin(@RequestParam String email,
                                             @RequestParam String secret) {
         if (!SECRET.equals(secret)) {
