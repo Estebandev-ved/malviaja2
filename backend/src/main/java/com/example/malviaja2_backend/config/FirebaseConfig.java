@@ -20,6 +20,9 @@ public class FirebaseConfig {
     @Value("${FIREBASE_CREDENTIALS:#{null}}")
     private String firebaseCredentialsJson;
 
+    @Value("${FIREBASE_CONFIG_PATH:#{null}}")
+    private String firebaseConfigPath;
+
     @PostConstruct
     public void initialize() {
         if (!FirebaseApp.getApps().isEmpty()) {
@@ -55,22 +58,54 @@ public class FirebaseConfig {
                             .build();
                     log.info("Firebase Admin SDK inicializado usando la variable de entorno FIREBASE_CREDENTIALS (JSON Plano).");
                 }
+            } else if (firebaseConfigPath != null && !firebaseConfigPath.trim().isEmpty()) {
+                // 2. Usar ruta de archivo especificada (Útil para Secret Files en Render)
+                try (InputStream serviceAccount = new java.io.FileInputStream(firebaseConfigPath)) {
+                    options = FirebaseOptions.builder()
+                            .setCredentials(GoogleCredentials.fromStream(serviceAccount))
+                            .build();
+                    log.info("Firebase Admin SDK inicializado usando la ruta: {}", firebaseConfigPath);
+                } catch (IOException e) {
+                    log.error("No se pudo leer el archivo de credenciales en la ruta: {}", firebaseConfigPath);
+                    throw e;
+                }
             } else {
-                // 2. Usar archivo local (Para Desarrollo)
-                InputStream serviceAccount = getClass().getClassLoader()
-                        .getResourceAsStream("firebase-service-account.json");
+                // 3. Buscar archivo de credenciales en múltiples ubicaciones
+                log.info("Buscando archivo firebase-service-account.json en múltiples ubicaciones...");
+                InputStream serviceAccount = null;
+                
+                // Lista de rutas donde Render y otros servicios colocan Secret Files
+                String[] possiblePaths = {
+                    "/etc/secrets/firebase-service-account.json",
+                    "firebase-service-account.json",
+                    "/opt/render/project/src/firebase-service-account.json"
+                };
+                
+                for (String path : possiblePaths) {
+                    java.io.File file = new java.io.File(path);
+                    log.info("Verificando ruta: {} -> existe: {}", path, file.exists());
+                    if (file.exists()) {
+                        serviceAccount = new java.io.FileInputStream(file);
+                        log.info("✅ Firebase credentials encontrado en: {}", path);
+                        break;
+                    }
+                }
+                
+                // Si no se encontró en filesystem, intentar classpath
+                if (serviceAccount == null) {
+                    serviceAccount = getClass().getClassLoader().getResourceAsStream("firebase-service-account.json");
+                    if (serviceAccount != null) {
+                        log.info("✅ Firebase credentials encontrado en classpath (resources).");
+                    }
+                }
                 
                 if (serviceAccount != null) {
                     options = FirebaseOptions.builder()
                             .setCredentials(GoogleCredentials.fromStream(serviceAccount))
                             .build();
-                    log.info("Firebase Admin SDK inicializado con archivo firebase-service-account.json.");
                 } else {
-                    // 3. Fallback
-                    options = FirebaseOptions.builder()
-                            .setCredentials(GoogleCredentials.getApplicationDefault())
-                            .build();
-                    log.info("Firebase Admin SDK inicializado con Application Default Credentials.");
+                    log.error("❌ No se encontró firebase-service-account.json en ninguna ubicación.");
+                    throw new IOException("No se encontró el archivo de credenciales de Firebase en ninguna ruta conocida.");
                 }
             }
             FirebaseApp.initializeApp(options);
