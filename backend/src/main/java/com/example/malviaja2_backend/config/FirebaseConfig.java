@@ -36,8 +36,10 @@ public class FirebaseConfig {
                 try {
                     String base64Credentials = firebaseCredentialsJson.trim();
                     byte[] decodedBytes = java.util.Base64.getDecoder().decode(base64Credentials);
-                    InputStream credentialsStream = new ByteArrayInputStream(decodedBytes);
-                    
+                    // Fix escaped newlines in private_key that break PKCS#8 parsing
+                    String decodedJson = new String(decodedBytes, StandardCharsets.UTF_8).replace("\\n", "\n");
+                    InputStream credentialsStream = new ByteArrayInputStream(decodedJson.getBytes(StandardCharsets.UTF_8));
+
                     options = FirebaseOptions.builder()
                             .setCredentials(GoogleCredentials.fromStream(credentialsStream))
                             .build();
