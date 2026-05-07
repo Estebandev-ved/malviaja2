@@ -29,8 +29,10 @@ public class FirebaseConfig {
             FirebaseOptions options;
             
             if (firebaseCredentialsJson != null && !firebaseCredentialsJson.trim().isEmpty()) {
-                // 1. Usar variable de entorno (Para Railway / Producción)
-                InputStream credentialsStream = new ByteArrayInputStream(firebaseCredentialsJson.getBytes(StandardCharsets.UTF_8));
+                // 1. Usar variable de entorno (Para Render / Producción)
+                // Render a veces escapa los saltos de línea, así que los procesamos
+                String processedJson = firebaseCredentialsJson.replace("\\n", "\n");
+                InputStream credentialsStream = new ByteArrayInputStream(processedJson.getBytes(StandardCharsets.UTF_8));
                 options = FirebaseOptions.builder()
                         .setCredentials(GoogleCredentials.fromStream(credentialsStream))
                         .build();
