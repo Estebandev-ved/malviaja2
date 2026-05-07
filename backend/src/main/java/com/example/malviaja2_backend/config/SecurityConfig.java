@@ -49,6 +49,7 @@ public class SecurityConfig {
                     session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers(HttpMethod.GET, "/api/productos").permitAll()
+                .requestMatchers(HttpMethod.POST, "/api/setup/make-admin").permitAll()
                 .requestMatchers(HttpMethod.POST, "/api/pedidos/checkout").authenticated()
                 .requestMatchers(HttpMethod.GET, "/api/pedidos/usuario/**").authenticated()
                 .requestMatchers(HttpMethod.GET,    "/api/pedidos/todos").hasAuthority("ADMIN")
