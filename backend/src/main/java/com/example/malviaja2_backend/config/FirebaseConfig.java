@@ -35,9 +35,27 @@ public class FirebaseConfig {
                 // 1. Usar variable de entorno con Base64 (Para Render / Producción)
                 try {
                     String base64Credentials = firebaseCredentialsJson.trim();
-                    byte[] decodedBytes = java.util.Base64.getDecoder().decode(base64Credentials);
-                    // Fix escaped newlines in private_key that break PKCS#8 parsing
-                    String decodedJson = new String(decodedBytes, StandardCharsets.UTF_8).replace("\\n", "\n");
+                    log.info("FIREBASE_CREDENTIALS length: {}, starts with: [{}]",
+                            base64Credentials.length(),
+                            base64Credentials.substring(0, Math.min(20, base64Credentials.length())));
+
+                    // Try strict decoder first, fall back to MIME decoder (handles line-wrapped Base64)
+                    byte[] decodedBytes;
+                    try {
+                        decodedBytes = java.util.Base64.getDecoder().decode(base64Credentials);
+                    } catch (IllegalArgumentException e) {
+                        log.warn("Strict Base64 failed, trying MIME decoder (handles line breaks)...");
+                        decodedBytes = java.util.Base64.getMimeDecoder().decode(base64Credentials);
+                    }
+
+                    String decodedJson = new String(decodedBytes, StandardCharsets.UTF_8);
+                    log.info("Decoded JSON length: {}, starts with: [{}]",
+                            decodedJson.length(),
+                            decodedJson.substring(0, Math.min(80, decodedJson.length())));
+
+                    // Fix all variants of escaped/malformed newlines in private_key
+                    decodedJson = decodedJson.replace("\\r\\n", "\n").replace("\\n", "\n").replace("\r\n", "\n").replace("\r", "\n");
+
                     InputStream credentialsStream = new ByteArrayInputStream(decodedJson.getBytes(StandardCharsets.UTF_8));
 
                     options = FirebaseOptions.builder()
@@ -46,14 +64,17 @@ public class FirebaseConfig {
                     log.info("Firebase Admin SDK inicializado usando la variable de entorno FIREBASE_CREDENTIALS (Base64).");
                 } catch (IllegalArgumentException base64Ex) {
                     log.warn("La variable FIREBASE_CREDENTIALS no esta en formato Base64. Intentando leerla como JSON plano...");
-                    
-                    String processedJson = firebaseCredentialsJson.replace("\\n", "\n").replace("\\\"", "\"");
+
+                    String processedJson = firebaseCredentialsJson.replace("\\r\\n", "\n").replace("\\n", "\n").replace("\r\n", "\n").replace("\\\"", "\"");
                     if (processedJson.startsWith("\"") && processedJson.endsWith("\"") && processedJson.length() > 2) {
                         processedJson = processedJson.substring(1, processedJson.length() - 1);
                     }
                     if (processedJson.startsWith("'") && processedJson.endsWith("'") && processedJson.length() > 2) {
                         processedJson = processedJson.substring(1, processedJson.length() - 1);
                     }
+                    log.info("Plain JSON length: {}, starts with: [{}]",
+                            processedJson.length(),
+                            processedJson.substring(0, Math.min(80, processedJson.length())));
                     InputStream credentialsStream = new ByteArrayInputStream(processedJson.getBytes(StandardCharsets.UTF_8));
                     options = FirebaseOptions.builder()
                             .setCredentials(GoogleCredentials.fromStream(credentialsStream))
