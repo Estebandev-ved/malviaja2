@@ -30,8 +30,19 @@ public class FirebaseConfig {
             
             if (firebaseCredentialsJson != null && !firebaseCredentialsJson.trim().isEmpty()) {
                 // 1. Usar variable de entorno (Para Render / Producción)
-                // Render a veces escapa los saltos de línea, así que los procesamos
-                String processedJson = firebaseCredentialsJson.replace("\\n", "\n");
+                // Render a veces escapa los saltos de línea y agrega comillas extras
+                String processedJson = firebaseCredentialsJson
+                    .replace("\\n", "\n")
+                    .replace("\\\"", "\"");
+                
+                // Si el JSON viene envuelto en comillas simples o dobles extra al principio y al final, las quitamos
+                if (processedJson.startsWith("\"") && processedJson.endsWith("\"") && processedJson.length() > 2) {
+                    processedJson = processedJson.substring(1, processedJson.length() - 1);
+                }
+                if (processedJson.startsWith("'") && processedJson.endsWith("'") && processedJson.length() > 2) {
+                    processedJson = processedJson.substring(1, processedJson.length() - 1);
+                }
+
                 InputStream credentialsStream = new ByteArrayInputStream(processedJson.getBytes(StandardCharsets.UTF_8));
                 options = FirebaseOptions.builder()
                         .setCredentials(GoogleCredentials.fromStream(credentialsStream))
