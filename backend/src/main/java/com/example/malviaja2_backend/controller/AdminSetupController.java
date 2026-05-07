@@ -24,17 +24,15 @@ public class AdminSetupController {
             return ResponseEntity.status(403).body("Clave incorrecta.");
         }
 
-        Optional<Usuario> opt = usuarioRepository.findAll().stream()
-                .filter(u -> email.equalsIgnoreCase(u.getEmail()))
-                .findFirst();
+        Optional<Usuario> opt = usuarioRepository.findByEmailIgnoreCase(email);
 
         if (opt.isEmpty()) {
-            return ResponseEntity.status(404).body("Usuario no encontrado: " + email);
+            return ResponseEntity.status(404).body("❌ Usuario no encontrado: " + email + ". Asegúrate de haber iniciado sesión al menos una vez en la web para que el sistema te registre.");
         }
 
         Usuario usuario = opt.get();
         usuario.setRol("ADMIN");
         usuarioRepository.save(usuario);
-        return ResponseEntity.ok("✅ " + email + " ahora es ADMIN.");
+        return ResponseEntity.ok("✅ El usuario " + email + " ahora es ADMIN. Ya puedes cerrar esta pestaña y volver a la web.");
     }
 }
