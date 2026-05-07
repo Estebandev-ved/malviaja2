@@ -71,32 +71,37 @@ public class FirebaseConfig {
                 }
             } else {
                 // 3. Buscar archivo de credenciales en múltiples ubicaciones
-                log.info("Buscando archivo firebase-service-account.json en múltiples ubicaciones...");
+                log.info("🔍 Buscando archivo firebase-service-account.json...");
                 InputStream serviceAccount = null;
                 
-                // Lista de rutas donde Render y otros servicios colocan Secret Files
                 String[] possiblePaths = {
                     "/etc/secrets/firebase-service-account.json",
                     "firebase-service-account.json",
-                    "/opt/render/project/src/firebase-service-account.json"
+                    "backend/src/main/resources/firebase-service-account.json"
                 };
                 
                 for (String path : possiblePaths) {
                     java.io.File file = new java.io.File(path);
-                    log.info("Verificando ruta: {} -> existe: {}", path, file.exists());
                     if (file.exists()) {
                         serviceAccount = new java.io.FileInputStream(file);
-                        log.info("✅ Firebase credentials encontrado en: {}", path);
+                        log.info("✅ ¡Encontrado en filesystem!: {}", path);
                         break;
                     }
                 }
                 
-                // Si no se encontró en filesystem, intentar classpath
+                // DEBUG: Si no existe en la ruta de Render, listamos qué HAY ahí
+                if (serviceAccount == null) {
+                    java.io.File secretsDir = new java.io.File("/etc/secrets");
+                    if (secretsDir.exists() && secretsDir.isDirectory()) {
+                        String[] files = secretsDir.list();
+                        log.warn("⚠️ No se encontró el archivo en /etc/secrets/. Los archivos disponibles son: {}", 
+                            (files != null && files.length > 0) ? String.join(", ", files) : "NINGUNO");
+                    }
+                }
+                
                 if (serviceAccount == null) {
                     serviceAccount = getClass().getClassLoader().getResourceAsStream("firebase-service-account.json");
-                    if (serviceAccount != null) {
-                        log.info("✅ Firebase credentials encontrado en classpath (resources).");
-                    }
+                    if (serviceAccount != null) log.info("✅ Encontrado en classpath.");
                 }
                 
                 if (serviceAccount != null) {
@@ -104,8 +109,8 @@ public class FirebaseConfig {
                             .setCredentials(GoogleCredentials.fromStream(serviceAccount))
                             .build();
                 } else {
-                    log.error("❌ No se encontró firebase-service-account.json en ninguna ubicación.");
-                    throw new IOException("No se encontró el archivo de credenciales de Firebase en ninguna ruta conocida.");
+                    log.error("❌ ERROR CRÍTICO: No se encontró el archivo de Firebase. Por favor, configura la variable FIREBASE_CREDENTIALS con el contenido del JSON.");
+                    throw new IOException("Archivo de credenciales no disponible.");
                 }
             }
             FirebaseApp.initializeApp(options);
