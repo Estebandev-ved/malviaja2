@@ -45,19 +45,26 @@ public class FirebaseAuthFilter extends OncePerRequestFilter {
         try {
             FirebaseToken decodedToken = FirebaseAuth.getInstance().verifyIdToken(idToken);
             String uid = decodedToken.getUid();
+            String email = decodedToken.getEmail();
+            String nombre = (String) decodedToken.getClaims().get("name");
 
-            // Rol se lee siempre desde la BD — la fuente de verdad es nuestra DB, no el token
-            String rol = usuarioRepository.findByFirebaseUid(uid)
-                    .map(Usuario::getRol)
-                    .orElse("USER");
+            // Sincronizar con la BD local: si no existe, lo creamos
+            Usuario usuario = usuarioRepository.findByFirebaseUid(uid)
+                    .orElseGet(() -> {
+                        Usuario nuevo = new Usuario();
+                        nuevo.setFirebaseUid(uid);
+                        nuevo.setEmail(email != null ? email : "usuario@sin-email.com");
+                        nuevo.setNombre(nombre != null ? nombre : "Usuario Malviajado");
+                        log.info("Sincronizando nuevo usuario desde Firebase: {}", email);
+                        return usuarioRepository.save(nuevo);
+                    });
 
             UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(
-                    uid, null, List.of(new SimpleGrantedAuthority(rol))
+                    uid, null, List.of(new SimpleGrantedAuthority(usuario.getRol()))
             );
             SecurityContextHolder.getContext().setAuthentication(auth);
 
         } catch (Exception e) {
-            // Token inválido, expirado o revocado → se deja sin autenticar
             log.warn("Token Firebase inválido [{}]: {}", request.getRequestURI(), e.getMessage());
             SecurityContextHolder.clearContext();
         }
