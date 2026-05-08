@@ -85,16 +85,20 @@ public class PedidoController {
             @Valid @ModelAttribute PedidoRequest request,
             @RequestParam("comprobante") MultipartFile comprobante) {
 
-        log.info("Recibiendo pedido de: {}", request.getNombre());
+        log.info("Recibiendo pedido de: {} ({})", request.getNombre(), request.getEmail());
         try {
             Pedido pedido = pedidoService.procesarCheckout(request, comprobante);
             return ResponseEntity.ok(Map.of(
                     "mensaje", "Pedido procesado con éxito.",
                     "pedidoId", pedido.getId()
             ));
+        } catch (IllegalStateException e) {
+            // Error de negocio controlado (ej: stock insuficiente) → 409 Conflict
+            log.warn("Pedido rechazado por regla de negocio: {}", e.getMessage());
+            return ResponseEntity.status(409).body(Map.of("error", e.getMessage()));
         } catch (Exception e) {
-            log.error("Error al procesar el pedido", e);
-            return ResponseEntity.internalServerError().body(Map.of("error", "Error procesando el pedido"));
+            log.error("Error inesperado al procesar el pedido", e);
+            return ResponseEntity.internalServerError().body(Map.of("error", "Error procesando el pedido. Por favor intenta de nuevo."));
         }
     }
 }

@@ -3,35 +3,56 @@ import { auth } from '../firebase';
 import { onAuthStateChanged, signOut } from 'firebase/auth';
 import { authFetch, apiFetch } from '../api';
 
-const useStore = create((set) => {
-  // Inicializamos el listener de Firebase aquí mismo
-  onAuthStateChanged(auth, (firebaseUser) => {
-    if (firebaseUser) {
-      const userData = {
-        uid: firebaseUser.uid,
-        email: firebaseUser.email,
-        displayName: firebaseUser.displayName,
-        photoURL: firebaseUser.photoURL,
-        rol: 'USER'
-      };
+/**
+ * BUG FIX #8: El listener onAuthStateChanged se registraba dentro de create(),
+ * lo que causaba múltiples registros y memory leaks al recargar el módulo (HMR).
+ * 
+ * Solución: se inicializa UNA SOLA VEZ con un flag de módulo (no en el closure de create).
+ * El unsubscribe se guarda para poder limpiar si fuera necesario.
+ */
+let authListenerInitialized = false;
 
-      // PASO 1: Dejar pasar al usuario INMEDIATAMENTE con datos de Firebase
-      set({ user: userData, authLoading: false });
+const useStore = create((set, get) => {
+  // Registrar el listener SOLO LA PRIMERA VEZ que el store se crea
+  if (!authListenerInitialized) {
+    authListenerInitialized = true;
 
-      // PASO 2: Enriquecer con datos del backend EN SEGUNDO PLANO (rol, dirección, etc.)
-      authFetch(`/api/pedidos/usuario/${firebaseUser.uid}/perfil`)
-        .then(res => res.ok ? res.json() : null)
-        .then(profileData => {
-          if (profileData) {
-            console.log("✅ Perfil cargado del backend. Rol:", profileData.rol);
+    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+      if (firebaseUser) {
+        const userData = {
+          uid: firebaseUser.uid,
+          email: firebaseUser.email,
+          displayName: firebaseUser.displayName,
+          photoURL: firebaseUser.photoURL,
+          rol: 'USER'
+        };
+
+        // PASO 1: Dejar pasar al usuario INMEDIATAMENTE con datos de Firebase
+        set({ user: userData, authLoading: false });
+
+        // PASO 2: Enriquecer con datos del backend EN SEGUNDO PLANO
+        // Esperamos que el token esté listo para evitar race conditions con el rol
+        try {
+          const res = await authFetch(`/api/pedidos/usuario/${firebaseUser.uid}/perfil`);
+          if (res.ok) {
+            const profileData = await res.json();
+            console.log('✅ Perfil cargado del backend. Rol:', profileData.rol);
             set({ user: { ...userData, ...profileData } });
           }
-        })
-        .catch(e => console.warn("Backend no disponible para perfil:", e.message));
-    } else {
-      set({ user: null, authLoading: false });
+        } catch (e) {
+          console.warn('Backend no disponible para perfil:', e.message);
+        }
+      } else {
+        set({ user: null, authLoading: false });
+      }
+    });
+
+    // Exponer unsubscribe en el store por si se necesita cleanup manual
+    // (útil en tests o SSR)
+    if (typeof window !== 'undefined') {
+      window.__malviaja2AuthUnsub = unsubscribe;
     }
-  });
+  }
 
   return {
     user: null,

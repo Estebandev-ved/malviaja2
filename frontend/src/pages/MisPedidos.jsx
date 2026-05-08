@@ -135,12 +135,20 @@ const MisPedidos = ({ isEmbedded = false }) => {
               <div className="pedido-details">
                 <h4 className="font-bold text-primary" style={{ marginBottom: '1rem' }}>Detalle de la compra:</h4>
                 <div style={{ marginBottom: '1.5rem' }}>
-                  {pedido.carritoJson ? JSON.parse(pedido.carritoJson).map((item, i) => (
-                    <div key={i} className="pedido-item-row">
-                      <span>{item.cantidad}x {item.nombre} {item.dosisMg ? `(${item.dosisMg}mg)` : ''}</span>
-                      <span style={{ fontWeight: '600' }}>${(item.precio * item.cantidad).toLocaleString()}</span>
-                    </div>
-                  )) : <span style={{ color: 'var(--color-text-light)' }}>Productos no detallados</span>}
+                  {pedido.carritoJson ? (() => {
+                    // BUG FIX: JSON.parse sin try/catch crashea toda la página si carritoJson
+                    // está corrupto en BD. Ahora falla de forma controlada por ítem.
+                    try {
+                      return JSON.parse(pedido.carritoJson).map((item, i) => (
+                        <div key={i} className="pedido-item-row">
+                          <span>{item.cantidad}x {item.nombre} {item.dosisMg ? `(${item.dosisMg}mg)` : ''}</span>
+                          <span style={{ fontWeight: '600' }}>${(item.precio * item.cantidad).toLocaleString()}</span>
+                        </div>
+                      ));
+                    } catch (e) {
+                      return <span style={{ color: 'var(--color-text-light)', fontSize: '0.85rem' }}>Detalle no disponible</span>;
+                    }
+                  })() : <span style={{ color: 'var(--color-text-light)' }}>Productos no detallados</span>}
                 </div>
                 
                 <div className="pedido-total-row">

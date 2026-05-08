@@ -126,6 +126,7 @@ const Checkout = () => {
     // Aquí integraremos luego la subida a Firebase o al Backend
     const form = new FormData();
     form.append("userId", user.uid);
+    form.append("email", user.email || ''); // BUG FIX: sin esto los nuevos usuarios quedan sin email en BD
     form.append("nombre", formData.nombre);
     form.append("direccion", formData.direccion);
     form.append("telefono", formData.telefono);
@@ -139,8 +140,17 @@ const Checkout = () => {
         body: form
       });
       
+      if (response.status === 409) {
+        // Error de stock controlado — mostrar al usuario qué producto no tiene stock
+        const errorData = await response.json();
+        alert(`⚠️ No podemos procesar tu pedido:\n\n${errorData.error}\n\nPor favor ajusta tu carrito.`);
+        setIsSubmitting(false);
+        return;
+      }
+
       if (!response.ok) {
-        throw new Error('Error al enviar el pedido');
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || 'Error al enviar el pedido');
       }
       
       // Consumir cupones usados
@@ -151,7 +161,7 @@ const Checkout = () => {
       setSuccess(true);
       clearCart();
     } catch (error) {
-      alert("Hubo un error procesando tu pedido.");
+      alert(`Hubo un error procesando tu pedido:\n${error.message}`);
       console.error(error);
     } finally {
       setIsSubmitting(false);
@@ -210,9 +220,16 @@ const Checkout = () => {
               ) : distancia > 0 ? (
                 <span>${costoEnvio.toLocaleString()} ({distancia.toFixed(1)} km)</span>
               ) : (
-                <span style={{ fontSize: '0.85rem', opacity: 0.6 }}>Esperando dirección...</span>
+                <span style={{ fontSize: '0.85rem', color: '#e65100', fontWeight: 'bold' }}>Ingresa tu dirección para calcular</span>
               )}
             </div>
+
+            {/* Aviso claro cuando el envío no pudo calcularse y se usa el valor por defecto */}
+            {!cuponEnvio && !isCalculando && distancia === 0 && formData.direccion.length > 8 && (
+              <div style={{ background: '#fff3e0', border: '1px solid #ff9800', borderRadius: 'var(--radius-sm)', padding: '0.75rem', fontSize: '0.82rem', color: '#e65100' }}>
+                ⚠️ <strong>No pudimos calcular la distancia</strong> para tu dirección. Se aplicará un costo de envío base de <strong>${(10000).toLocaleString()}</strong>. Si crees que es incorrecto, contáctanos antes de pagar.
+              </div>
+            )}
 
             {cuponBrownie && (
               <div style={{ display: 'flex', justifyContent: 'space-between', color: '#4caf50', fontWeight: 'bold' }}>

@@ -22,7 +22,8 @@ import java.util.List;
 @EnableMethodSecurity
 public class SecurityConfig {
 
-    @Value("${cors.allowed-origins:http://localhost:5173,http://localhost:5174}")
+    // Orígenes permitidos: localhost para dev + URL de producción en Vercel y Render
+    @Value("${cors.allowed-origins:http://localhost:5173,http://localhost:5174,https://malviaja2-qvce46ctq-estebandev-veds-projects.vercel.app,https://malviaja2.vercel.app}")
     private String allowedOriginsRaw;
 
     @Bean
@@ -48,10 +49,14 @@ public class SecurityConfig {
             .sessionManagement(session ->
                     session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
+                // Endpoints públicos
                 .requestMatchers(HttpMethod.GET, "/api/productos").permitAll()
-                .requestMatchers(HttpMethod.GET, "/api/setup/make-admin").permitAll()
+                // SEGURIDAD: El endpoint /api/setup/make-admin fue ELIMINADO intencionalmente.
+                // No debe existir ningún endpoint público de elevación de privilegios en producción.
+                // Endpoints autenticados
                 .requestMatchers(HttpMethod.POST, "/api/pedidos/checkout").authenticated()
                 .requestMatchers(HttpMethod.GET, "/api/pedidos/usuario/**").authenticated()
+                // Endpoints solo ADMIN
                 .requestMatchers(HttpMethod.GET,    "/api/pedidos/todos").hasAuthority("ADMIN")
                 .requestMatchers(HttpMethod.GET,    "/api/pedidos/usuarios/todos").hasAuthority("ADMIN")
                 .requestMatchers(HttpMethod.PUT,    "/api/pedidos/usuarios/**").hasAuthority("ADMIN")

@@ -2,8 +2,10 @@ package com.example.malviaja2_backend.service;
 
 import com.example.malviaja2_backend.model.Pedido;
 import com.example.malviaja2_backend.model.PedidoRequest;
+import com.example.malviaja2_backend.model.Producto;
 import com.example.malviaja2_backend.model.Usuario;
 import com.example.malviaja2_backend.repository.PedidoRepository;
+import com.example.malviaja2_backend.repository.ProductoRepository;
 import com.example.malviaja2_backend.repository.UsuarioRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
@@ -20,6 +22,7 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKe
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 @Slf4j
 @Service
@@ -28,17 +31,22 @@ public class PedidoService {
 
     private final PedidoRepository pedidoRepository;
     private final UsuarioRepository usuarioRepository;
+    private final ProductoRepository productoRepository;
     private final TelegramBotService telegramBotService;
     private final ObjectMapper objectMapper;
 
     @Transactional
     public Pedido procesarCheckout(PedidoRequest request, MultipartFile comprobante) throws Exception {
+        // 1. Sincronizar usuario con la BD local
         Usuario usuario = usuarioRepository.findByFirebaseUid(request.getUserId())
                 .orElseGet(() -> {
                     Usuario nuevo = new Usuario();
                     nuevo.setFirebaseUid(request.getUserId());
-                    nuevo.setEmail(request.getEmail() != null ? request.getEmail() : "usuario@malviaja2.com");
+                    nuevo.setEmail(request.getEmail() != null && !request.getEmail().isBlank()
+                            ? request.getEmail()
+                            : "usuario@malviaja2.com");
                     nuevo.setNombre(request.getNombre());
+                    log.info("Nuevo usuario sincronizado desde checkout: {}", nuevo.getEmail());
                     return usuarioRepository.save(nuevo);
                 });
 
@@ -46,6 +54,11 @@ public class PedidoService {
         usuario.setTelefonoPorDefecto(request.getTelefono());
         usuarioRepository.save(usuario);
 
+        // 2. Validar y decrementar stock (lanza excepción si no hay stock suficiente)
+        // La transacción garantiza que si algo falla, ningún stock se modifica.
+        decrementarStock(request.getCarrito());
+
+        // 3. Guardar el pedido
         Pedido pedido = new Pedido();
         pedido.setUsuario(usuario);
         pedido.setNombreReceptor(request.getNombre());
@@ -55,11 +68,53 @@ public class PedidoService {
         pedido.setCarritoJson(request.getCarrito());
         pedido.setEstado("PENDIENTE");
         pedido = pedidoRepository.save(pedido);
-        log.info("Pedido #{} guardado en BD.", pedido.getId());
+        log.info("✅ Pedido #{} guardado en BD. Cliente: {}", pedido.getId(), usuario.getEmail());
 
+        // 4. Notificar por Telegram (no bloquea aunque falle)
         notificarTelegram(pedido, request, comprobante);
         return pedido;
     }
+
+    /**
+     * Valida que haya stock suficiente para cada ítem del carrito y lo decrementa.
+     * Si algún producto no tiene stock, lanza IllegalStateException (transacción revierte).
+     */
+    @SuppressWarnings("unchecked")
+    private void decrementarStock(String carritoJson) throws Exception {
+        List<Map<String, Object>> items = objectMapper.readValue(carritoJson, List.class);
+        for (Map<String, Object> item : items) {
+            // El carrito puede tener 'id' como Integer o Long según la fuente
+            Object rawId = item.get("id");
+            if (rawId == null) continue; // Producto sin ID (datos de prueba), saltar
+
+            Long productoId = Long.valueOf(rawId.toString());
+            int cantidadSolicitada = item.get("cantidad") instanceof Integer
+                    ? (Integer) item.get("cantidad")
+                    : Integer.parseInt(item.get("cantidad").toString());
+
+            Optional<Producto> productoOpt = productoRepository.findById(productoId);
+            if (productoOpt.isEmpty()) {
+                log.warn("Producto #{} no existe en BD, posiblemente dato de prueba. Saltando.", productoId);
+                continue;
+            }
+
+            Producto producto = productoOpt.get();
+            if (producto.getStock() < cantidadSolicitada) {
+                String error = String.format(
+                    "Stock insuficiente para '%s'. Disponible: %d, Solicitado: %d.",
+                    producto.getNombre(), producto.getStock(), cantidadSolicitada
+                );
+                log.error("❌ {}", error);
+                throw new IllegalStateException(error);
+            }
+
+            producto.setStock(producto.getStock() - cantidadSolicitada);
+            productoRepository.save(producto);
+            log.info("📦 Stock de '{}' actualizado: {} → {}", producto.getNombre(),
+                    producto.getStock() + cantidadSolicitada, producto.getStock());
+        }
+    }
+
 
     public List<Pedido> obtenerHistorial(String firebaseUid) {
         return usuarioRepository.findByFirebaseUid(firebaseUid)

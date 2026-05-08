@@ -10,7 +10,6 @@ import lombok.extern.slf4j.Slf4j;
 
 import com.example.malviaja2_backend.model.Pedido;
 import com.example.malviaja2_backend.repository.PedidoRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageCaption;
 import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
@@ -23,17 +22,27 @@ import java.util.ArrayList;
 @Service
 public class TelegramBotService extends TelegramLongPollingBot {
 
-    @Value("${telegram.bot.username}")
-    private String botUsername;
+    /**
+     * FIX: TelegramLongPollingBot requiere el token en el CONSTRUCTOR.
+     * Los campos @Value se inyectan DESPUÉS de la construcción, lo que causaría
+     * que getBotToken() devuelva null al momento de registrar el bot → NullPointerException.
+     * Solución: inyectar por constructor con @Value directamente en el parámetro.
+     */
+    private final String botUsername;
+    private final String adminChatId;
+    private final PedidoRepository pedidoRepository;
 
-    @Value("${telegram.bot.token}")
-    private String botToken;
-
-    @Value("${telegram.bot.admin-chat-id:}")
-    private String adminChatId;
-
-    @Autowired
-    private PedidoRepository pedidoRepository;
+    public TelegramBotService(
+            @Value("${telegram.bot.token}") String botToken,
+            @Value("${telegram.bot.username}") String botUsername,
+            @Value("${telegram.bot.admin-chat-id:}") String adminChatId,
+            PedidoRepository pedidoRepository) {
+        super(botToken); // Pasa el token al constructor base → disponible desde el inicio
+        this.botUsername = botUsername;
+        this.adminChatId = adminChatId;
+        this.pedidoRepository = pedidoRepository;
+        log.info("✅ TelegramBotService inicializado correctamente. Username: {}", botUsername);
+    }
 
     public String getAdminChatId() {
         return adminChatId;
@@ -44,10 +53,8 @@ public class TelegramBotService extends TelegramLongPollingBot {
         return botUsername;
     }
 
-    @Override
-    public String getBotToken() {
-        return botToken;
-    }
+    // getBotToken() es manejado internamente por TelegramLongPollingBot
+    // al pasar el token en el constructor super(botToken)
 
     @Override
     public void onUpdateReceived(Update update) {
