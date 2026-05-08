@@ -34,15 +34,29 @@ public class SecurityConfig {
     @Bean
     SecurityFilterChain securityFilterChain(HttpSecurity http,
                                             FirebaseAuthFilter firebaseAuthFilter) throws Exception {
-        List<String> allowedOrigins = Arrays.asList(allowedOriginsRaw.split(","));
+        // trim() en cada origen: evita espacios accidentales si la var de entorno tiene "url1, url2"
+        List<String> allowedOrigins = Arrays.stream(allowedOriginsRaw.split(","))
+                .map(String::trim)
+                .toList();
 
         http
             .cors(cors -> cors.configurationSource(request -> {
                 CorsConfiguration config = new CorsConfiguration();
                 config.setAllowedOrigins(allowedOrigins);
                 config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-                config.setAllowedHeaders(List.of("*"));
+                // CORREGIDO: setAllowedHeaders("*") + setAllowCredentials(true) viola la spec CORS.
+                // Con credenciales activas, los headers deben ser explícitos (no comodín).
+                config.setAllowedHeaders(List.of(
+                    "Authorization",
+                    "Content-Type",
+                    "Accept",
+                    "Origin",
+                    "X-Requested-With",
+                    "Cache-Control"
+                ));
+                config.setExposedHeaders(List.of("Authorization"));
                 config.setAllowCredentials(true);
+                config.setMaxAge(3600L); // Cache del preflight 1 hora
                 return config;
             }))
             .csrf(csrf -> csrf.disable())
