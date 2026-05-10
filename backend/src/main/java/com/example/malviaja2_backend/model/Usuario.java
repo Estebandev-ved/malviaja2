@@ -26,6 +26,15 @@ public class Usuario {
 
     private String rol = "USER";
 
+    @Column(nullable = false, columnDefinition = "boolean default true")
+    private Boolean activo = true;
+
+    @Column(name = "primer_compra_realizada", nullable = false, columnDefinition = "boolean default false")
+    private Boolean primerCompraRealizada = false;
+
+    @Column(name = "ultima_compra")
+    private LocalDateTime ultimaCompra;
+
     @Column(name = "created_at")
     private LocalDateTime createdAt;
 

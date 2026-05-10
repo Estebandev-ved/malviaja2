@@ -9,6 +9,9 @@ const Home = () => {
       <section className="hero">
         <div className="container hero__container">
           <div className="hero__content">
+            <div style={{ display: 'inline-block', background: 'var(--color-primary)', color: 'var(--color-text-on-primary)', padding: '0.5rem 1rem', borderRadius: 'var(--radius-full)', fontWeight: 'bold', fontSize: '0.9rem', marginBottom: '1.5rem', letterSpacing: '1px', textTransform: 'uppercase' }}>
+              NO vendemos drogas, vendemos postres
+            </div>
             <h1 className="hero__title">
               Siente el <span className="text-secondary">Viaje</span>. Disfruta el Sabor.
             </h1>
@@ -16,8 +19,8 @@ const Home = () => {
               Brownies cannábicos premium hechos con los mejores ingredientes y la dosis perfecta para una experiencia inigualable, totalmente controlada y segura.
             </p>
             <div className="hero__actions" style={{ display: 'flex', flexDirection: 'column', gap: '1rem', width: '100%', maxWidth: '400px', margin: '0 auto' }}>
-              <Link to="/quiz" className="btn btn--primary hero__btn" style={{ fontSize: '1.2rem', padding: '1.25rem', background: 'var(--color-primary-dark)', boxShadow: '0 0 20px rgba(93,64,55,0.4)', animation: 'pulse 2s infinite', display: 'flex', alignItems: 'center', gap: '0.5rem', justifyContent: 'center' }}>
-                <FlaskConical size={24} /> Crea tu Viaje a la Medida
+              <Link to="/login" className="btn btn--primary hero__btn" style={{ fontSize: '1.2rem', padding: '1.25rem', background: 'var(--color-primary-dark)', boxShadow: '0 0 20px rgba(93,64,55,0.4)', animation: 'pulse 2s infinite', display: 'flex', alignItems: 'center', gap: '0.5rem', justifyContent: 'center' }}>
+                <ShieldCheck size={24} /> Solicitar Acceso al Club
               </Link>
               <div style={{ display: 'flex', gap: '1rem' }}>
                 <Link to="/comestibles" className="btn btn--secondary hero__btn" style={{ flex: 1 }}>
@@ -37,6 +40,31 @@ const Home = () => {
             />
             <div className="hero__blob"></div>
           </div>
+        </div>
+      </section>
+
+      {/* Exclusivity / FOMO Section */}
+      <section style={{ background: '#212121', color: '#fff', padding: '4rem 0', textAlign: 'center', borderTop: '4px solid var(--color-secondary)' }}>
+        <div className="container" style={{ maxWidth: '800px' }}>
+          <ShieldCheck size={48} color="var(--color-secondary)" style={{ margin: '0 auto 1.5rem' }} />
+          <h2 style={{ fontSize: '2.5rem', marginBottom: '1.5rem', color: 'var(--color-secondary)', fontWeight: '900', textTransform: 'uppercase', letterSpacing: '2px' }}>Acceso Confidencial</h2>
+          <p style={{ fontSize: '1.2rem', lineHeight: '1.8', marginBottom: '2rem', color: '#ccc' }}>
+            Malviaja2 no es para todos. Somos una comunidad cerrada y estrictamente confidencial. 
+            Actualmente solo permitimos un <strong>máximo de 50 cuentas activas</strong>.
+          </p>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1.5rem', textAlign: 'left', marginBottom: '3rem' }}>
+            <div style={{ background: 'rgba(255,255,255,0.05)', padding: '1.5rem', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.1)' }}>
+              <h4 style={{ color: 'var(--color-secondary)', marginBottom: '0.5rem', fontSize: '1.1rem' }}>🔥 20% OFF Bienvenida</h4>
+              <p style={{ fontSize: '0.9rem', color: '#aaa' }}>Obtén un 20% de descuento automático en tu primer viaje por formar parte del club.</p>
+            </div>
+            <div style={{ background: 'rgba(255,255,255,0.05)', padding: '1.5rem', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.1)' }}>
+              <h4 style={{ color: '#ff5252', marginBottom: '0.5rem', fontSize: '1.1rem' }}>⚠️ Regla de Inactividad</h4>
+              <p style={{ fontSize: '0.9rem', color: '#aaa' }}>Para mantener el cupo, debes hacer al menos un pedido mínimo de $15.000 cada 15 días, o tu cuenta será desactivada para darle espacio a alguien más.</p>
+            </div>
+          </div>
+          <Link to="/login" className="btn btn--secondary" style={{ padding: '1rem 3rem', fontSize: '1.2rem', fontWeight: 'bold' }}>
+            Verificar Disponibilidad de Cupos
+          </Link>
         </div>
       </section>
 

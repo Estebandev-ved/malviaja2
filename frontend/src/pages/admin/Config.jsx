@@ -1,46 +1,78 @@
-import { useState } from 'react';
-import { Save, Bell, Truck, Store, Shield, Globe, CheckCircle2, AlertTriangle } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Save, Bell, Truck, Store, Shield, Globe, CheckCircle2, AlertTriangle, Users } from 'lucide-react';
+import { authFetch } from '../../api';
 
 const ConfigAdmin = () => {
   const [saved, setSaved] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   // Estado de la configuración
   const [config, setConfig] = useState({
+    maxUsuarios: 50,
+    diasInactividad: 15,
+    compraMinima: 15000,
     // Tienda
     storeName: 'Malviaja2',
     storeSlogan: 'Tu Viaje Premium',
     storeEmail: 'contacto@malviaja2.com',
     storePhone: '+57 300 000 0000',
     currency: 'COP',
-    minOrder: 15000,
-
     // Telegram
     telegramEnabled: true,
     telegramToken: '8462231345:AAEtjjNcWoB_EWhL_vwnM8-DayuPR5_mU3w',
     telegramChatId: '7135734568',
-
     // Envío
     deliveryPricePerKm: 1500,
     deliveryBase: 'Medellín (Alpujarra)',
     deliveryMinFree: 150000,
     deliveryMaxRadius: 50,
-
     // Seguridad
     ageGateEnabled: true,
     ageGateMinAge: 18,
     maintenanceMode: false,
   });
 
+  useEffect(() => {
+    const fetchConfig = async () => {
+      try {
+        const res = await authFetch('/api/configuracion');
+        if (res.ok) {
+          const dbConfig = await res.json();
+          setConfig(prev => ({
+            ...prev,
+            ...dbConfig
+          }));
+        }
+      } catch (e) {
+        console.error("Error al cargar configuración", e);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchConfig();
+  }, []);
+
   const handleChange = (key, value) => {
     setConfig(prev => ({ ...prev, [key]: value }));
     setSaved(false);
   };
 
-  const handleSave = () => {
-    // Guardar en localStorage para persistencia local
-    localStorage.setItem('malviaja2_config', JSON.stringify(config));
-    setSaved(true);
-    setTimeout(() => setSaved(false), 3000);
+  const handleSave = async () => {
+    try {
+      const res = await authFetch('/api/configuracion', {
+        method: 'PUT',
+        body: JSON.stringify(config)
+      });
+      if (res.ok) {
+        setSaved(true);
+        setTimeout(() => setSaved(false), 3000);
+      } else {
+        alert("Error al guardar en el servidor");
+      }
+    } catch (e) {
+      console.error(e);
+      alert("Error al guardar en el servidor");
+    }
   };
 
   const Section = ({ title, icon, children }) => (
@@ -89,6 +121,21 @@ const ConfigAdmin = () => {
           <CheckCircle2 size={18} /> Configuración guardada correctamente.
         </div>
       )}
+
+      {/* SECCIÓN: EXCLUSIVIDAD Y MARKETING */}
+      <Section title="Club Exclusivo (Reglas)" icon={<Users size={22} style={{ color: '#ff9800' }} />}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1.5rem' }}>
+          <Field label="Límite Máximo de Usuarios" description="Cantidad máxima de miembros activos permitidos en el club.">
+            <input type="number" value={config.maxUsuarios} onChange={e => handleChange('maxUsuarios', Number(e.target.value))} style={inputStyle} />
+          </Field>
+          <Field label="Días de Tolerancia (Inactividad)" description="Días sin hacer pedidos antes de suspender la cuenta.">
+            <input type="number" value={config.diasInactividad} onChange={e => handleChange('diasInactividad', Number(e.target.value))} style={inputStyle} />
+          </Field>
+          <Field label="Compra Mínima ($)" description="Monto mínimo para mantener privilegios VIP y hacer pedidos.">
+            <input type="number" value={config.compraMinima} onChange={e => handleChange('compraMinima', Number(e.target.value))} style={inputStyle} />
+          </Field>
+        </div>
+      </Section>
 
       {/* SECCIÓN: TIENDA */}
       <Section title="Información de la Tienda" icon={<Store size={22} style={{ color: 'var(--color-primary)' }} />}>

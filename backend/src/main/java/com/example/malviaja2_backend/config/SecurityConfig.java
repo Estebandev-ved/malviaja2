@@ -27,8 +27,9 @@ public class SecurityConfig {
     private String allowedOriginsRaw;
 
     @Bean
-    FirebaseAuthFilter firebaseAuthFilter(UsuarioRepository usuarioRepository) {
-        return new FirebaseAuthFilter(usuarioRepository);
+    FirebaseAuthFilter firebaseAuthFilter(UsuarioRepository usuarioRepository, 
+                                          com.example.malviaja2_backend.service.ConfiguracionService configuracionService) {
+        return new FirebaseAuthFilter(usuarioRepository, configuracionService);
     }
 
     @Bean

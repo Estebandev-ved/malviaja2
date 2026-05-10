@@ -23,6 +23,7 @@ import java.util.List;
 public class FirebaseAuthFilter extends OncePerRequestFilter {
 
     private final UsuarioRepository usuarioRepository;
+    private final com.example.malviaja2_backend.service.ConfiguracionService configuracionService;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request,
@@ -49,15 +50,26 @@ public class FirebaseAuthFilter extends OncePerRequestFilter {
             String nombre = (String) decodedToken.getClaims().get("name");
 
             // Sincronizar con la BD local: si no existe, lo creamos
-            Usuario usuario = usuarioRepository.findByFirebaseUid(uid)
-                    .orElseGet(() -> {
-                        Usuario nuevo = new Usuario();
-                        nuevo.setFirebaseUid(uid);
-                        nuevo.setEmail(email != null ? email : "usuario@sin-email.com");
-                        nuevo.setNombre(nombre != null ? nombre : "Usuario Malviajado");
-                        log.info("Sincronizando nuevo usuario desde Firebase: {}", email);
-                        return usuarioRepository.save(nuevo);
-                    });
+            Usuario usuario = usuarioRepository.findByFirebaseUid(uid).orElse(null);
+            
+            if (usuario == null) {
+                // Verificar límite de usuarios activos
+                long currentUsers = usuarioRepository.countByActivoTrue();
+                int maxUsers = configuracionService.obtenerConfiguracion().getMaxUsuarios();
+                
+                if (currentUsers >= maxUsers) {
+                    log.warn("Intento de registro rechazado: Límite de {} usuarios alcanzado.", maxUsers);
+                    response.sendError(HttpServletResponse.SC_FORBIDDEN, "Club lleno. No se aceptan nuevos miembros.");
+                    return;
+                }
+                
+                usuario = new Usuario();
+                usuario.setFirebaseUid(uid);
+                usuario.setEmail(email != null ? email : "usuario@sin-email.com");
+                usuario.setNombre(nombre != null ? nombre : "Usuario Malviajado");
+                log.info("Sincronizando nuevo usuario desde Firebase: {}", email);
+                usuario = usuarioRepository.save(usuario);
+            }
 
             UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(
                     uid, null, List.of(new SimpleGrantedAuthority(usuario.getRol()))

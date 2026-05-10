@@ -15,6 +15,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.util.HtmlUtils;
 import org.telegram.telegrambots.meta.api.methods.send.SendPhoto;
 import org.telegram.telegrambots.meta.api.objects.InputFile;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
@@ -34,6 +35,7 @@ public class PedidoService {
     private final ProductoRepository productoRepository;
     private final TelegramBotService telegramBotService;
     private final ObjectMapper objectMapper;
+    private final ConfiguracionService configuracionService;
 
     @Transactional
     public Pedido procesarCheckout(PedidoRequest request, MultipartFile comprobante) throws Exception {
@@ -45,13 +47,27 @@ public class PedidoService {
                     nuevo.setEmail(request.getEmail() != null && !request.getEmail().isBlank()
                             ? request.getEmail()
                             : "usuario@malviaja2.com");
-                    nuevo.setNombre(request.getNombre());
+                    nuevo.setNombre(HtmlUtils.htmlEscape(request.getNombre()));
                     log.info("Nuevo usuario sincronizado desde checkout: {}", nuevo.getEmail());
                     return usuarioRepository.save(nuevo);
                 });
 
-        usuario.setDireccionPorDefecto(request.getDireccion());
-        usuario.setTelefonoPorDefecto(request.getTelefono());
+        // Validar compra mínima desde la configuración global
+        double compraMinima = configuracionService.obtenerConfiguracion().getCompraMinima();
+        // Nota: asumiendo que request.getTotal() es el total del pedido con envíos. Lo ideal es validar el subtotal de los productos,
+        // pero validaremos el total general si no hay un subtotal en el request.
+        if (request.getTotal() < compraMinima) {
+            throw new IllegalStateException("El total del pedido no alcanza el mínimo requerido para exclusividad: $" + compraMinima);
+        }
+
+        usuario.setDireccionPorDefecto(HtmlUtils.htmlEscape(request.getDireccion()));
+        usuario.setTelefonoPorDefecto(HtmlUtils.htmlEscape(request.getTelefono()));
+        
+        // Actualizar datos de exclusividad
+        usuario.setPrimerCompraRealizada(true);
+        usuario.setUltimaCompra(java.time.LocalDateTime.now());
+        usuario.setActivo(true); // Reactivar si estaba inactivo
+        
         usuarioRepository.save(usuario);
 
         // 2. Validar y decrementar stock (lanza excepción si no hay stock suficiente)
@@ -61,9 +77,9 @@ public class PedidoService {
         // 3. Guardar el pedido
         Pedido pedido = new Pedido();
         pedido.setUsuario(usuario);
-        pedido.setNombreReceptor(request.getNombre());
-        pedido.setTelefono(request.getTelefono());
-        pedido.setDireccionEnvio(request.getDireccion());
+        pedido.setNombreReceptor(HtmlUtils.htmlEscape(request.getNombre()));
+        pedido.setTelefono(HtmlUtils.htmlEscape(request.getTelefono()));
+        pedido.setDireccionEnvio(HtmlUtils.htmlEscape(request.getDireccion()));
         pedido.setTotal(request.getTotal());
         pedido.setCarritoJson(request.getCarrito());
         pedido.setEstado("PENDIENTE");

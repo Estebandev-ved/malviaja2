@@ -4,40 +4,7 @@ import { logActivity } from '../../utils/activityLog';
 
 const KEY = 'admin_mensajes';
 
-const demoConversaciones = [
-  {
-    id: 1,
-    clienteNombre: 'Juan Pérez',
-    clienteEmail: 'juan@ejemplo.com',
-    mensajes: [
-      { de: 'cliente', texto: 'Hola, ¿cuánto se demora el envío a Laureles?', fecha: new Date(Date.now() - 3600000 * 2).toISOString() },
-      { de: 'admin', texto: '¡Hola Juan! Normalmente entre 30 y 60 minutos. 🚴', fecha: new Date(Date.now() - 3500000 * 2).toISOString() },
-      { de: 'cliente', texto: 'Perfecto, gracias!', fecha: new Date(Date.now() - 3400000 * 2).toISOString() },
-    ],
-    ultimaMensaje: new Date(Date.now() - 3400000 * 2).toISOString(),
-    noLeidos: 0,
-  },
-  {
-    id: 2,
-    clienteNombre: 'María García',
-    clienteEmail: 'maria@ejemplo.com',
-    mensajes: [
-      { de: 'cliente', texto: 'Quiero saber si tienen el producto Gelato disponible', fecha: new Date(Date.now() - 1800000).toISOString() },
-    ],
-    ultimaMensaje: new Date(Date.now() - 1800000).toISOString(),
-    noLeidos: 1,
-  },
-  {
-    id: 3,
-    clienteNombre: 'Carlos Rodríguez',
-    clienteEmail: 'carlos@ejemplo.com',
-    mensajes: [
-      { de: 'cliente', texto: 'Mi pedido #42 lleva 2 horas, ¿qué pasó?', fecha: new Date(Date.now() - 600000).toISOString() },
-    ],
-    ultimaMensaje: new Date(Date.now() - 600000).toISOString(),
-    noLeidos: 1,
-  },
-];
+const demoConversaciones = [];
 
 const card = {
   background: 'white',

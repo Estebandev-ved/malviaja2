@@ -87,7 +87,15 @@ const Login = () => {
 
         {/* Lado Derecho: Login Form */}
         <div className="glass" style={{ padding: '3rem 2rem', borderRadius: 'var(--radius-lg)', textAlign: 'center', boxShadow: 'var(--shadow-lg)' }}>
-          <h2 className="text-primary-dark font-bold" style={{ fontSize: '1.8rem', marginBottom: '2rem' }}>Iniciar Sesión</h2>
+          <h2 className="text-primary-dark font-bold" style={{ fontSize: '1.8rem', marginBottom: '1rem' }}>Acceso al Club</h2>
+          
+          <div style={{ background: '#ffebee', border: '1px solid #ffcdd2', borderRadius: '8px', padding: '1rem', marginBottom: '2rem', textAlign: 'left' }}>
+            <p style={{ margin: 0, fontSize: '0.9rem', color: '#b71c1c' }}>
+              <strong>🔒 Aviso de Confidencialidad:</strong><br/>
+              Malviaja2 tiene un límite estricto de <strong>50 miembros activos</strong>. Si no pides en 15 días, tu cuenta será desactivada para ceder el cupo. <br/><br/>
+              🎁 <em>Nuevos registros reciben 20% OFF en su primer viaje.</em>
+            </p>
+          </div>
           
           <button 
             onClick={handleGoogleLogin}

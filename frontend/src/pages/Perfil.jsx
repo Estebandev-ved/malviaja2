@@ -141,6 +141,13 @@ const Perfil = () => {
                   </div>
                 );
               })()}
+
+              {perfilDb && perfilDb.activo === false && (
+                <div style={{ background: '#ffebee', color: '#c62828', padding: '0.75rem', borderRadius: '8px', fontSize: '0.85rem', marginTop: '1.5rem', textAlign: 'left', border: '1px solid #ffcdd2', lineHeight: '1.5' }}>
+                  ⚠️ <strong>Cuenta en Riesgo de Suspensión:</strong><br/>
+                  Llevas más de 15 días inactivo. Haz un pedido mínimo de $15.000 para mantener tu membresía en el club Malviaja2 y evitar perder tus puntos.
+                </div>
+              )}
             </div>
 
             <div className="sidebar-menu">

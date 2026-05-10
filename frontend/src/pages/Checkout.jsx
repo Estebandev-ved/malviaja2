@@ -15,6 +15,7 @@ const Checkout = () => {
   const [comprobante, setComprobante] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [primerViaje, setPrimerViaje] = useState(false);
 
   useEffect(() => {
     if (!user) {
@@ -32,6 +33,7 @@ const Checkout = () => {
             direccion: data.direccionPorDefecto || '',
             telefono: data.telefonoPorDefecto || ''
           }));
+          setPrimerViaje(!data.primerCompraRealizada);
         }
       } catch (e) {
         console.error("Error obteniendo perfil", e);
@@ -96,8 +98,13 @@ const Checkout = () => {
   // Si tiene brownie gratis, le descontamos 15000 (valor base) del total
   const descuentoBrownie = cuponBrownie ? 15000 : 0;
   
-  let totalCalculado = subtotal + costoEnvio - descuentoBrownie;
+  // Descuento del 20% para primeros viajeros
+  const descuentoPrimerViaje = primerViaje ? Math.round(subtotal * 0.20) : 0;
+  
+  let totalCalculado = subtotal + costoEnvio - descuentoBrownie - descuentoPrimerViaje;
   if (totalCalculado < 0) totalCalculado = 0; // Evitar negativos
+
+  const cumpleMinimo = subtotal >= 15000;
 
   // Redirigir a login si lograron entrar aquí sin user por alguna razón
   if (!user && !success) {
@@ -238,6 +245,13 @@ const Checkout = () => {
               </div>
             )}
 
+            {primerViaje && (
+              <div style={{ display: 'flex', justifyContent: 'space-between', color: '#4caf50', fontWeight: 'bold' }}>
+                <span>🔥 20% OFF (Primer Viaje)</span>
+                <span>-${descuentoPrimerViaje.toLocaleString()}</span>
+              </div>
+            )}
+
             {cuponRegalo && (
               <div style={{ display: 'flex', justifyContent: 'space-between', color: '#4caf50', fontWeight: 'bold' }}>
                 <span>Regalo Sorpresa Activado</span>
@@ -324,7 +338,13 @@ const Checkout = () => {
               />
             </div>
 
-            <button type="submit" className="btn btn--primary" style={{ marginTop: '2rem', width: '100%', fontSize: '1.2rem' }} disabled={isSubmitting}>
+            {!cumpleMinimo && (
+              <div style={{ background: '#ffebee', border: '1px solid #ef9a9a', borderRadius: 'var(--radius-sm)', padding: '0.75rem', fontSize: '0.85rem', color: '#c62828', marginTop: '1.5rem', textAlign: 'center' }}>
+                ⚠️ <strong>Compra mínima de $15,000 requerida.</strong> Tu subtotal actual es de ${subtotal.toLocaleString()}. Agrega más productos para continuar.
+              </div>
+            )}
+
+            <button type="submit" className="btn btn--primary" style={{ marginTop: '1rem', width: '100%', fontSize: '1.2rem' }} disabled={isSubmitting || !cumpleMinimo}>
               {isSubmitting ? 'Enviando Pedido...' : 'Enviar Pedido y Comprobante'}
             </button>
           </form>
