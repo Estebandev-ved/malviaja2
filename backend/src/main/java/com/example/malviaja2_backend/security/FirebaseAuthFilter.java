@@ -50,34 +50,48 @@ public class FirebaseAuthFilter extends OncePerRequestFilter {
             String nombre = (String) decodedToken.getClaims().get("name");
 
             // Sincronizar con la BD local: si no existe, lo creamos
-            Usuario usuario = usuarioRepository.findByFirebaseUid(uid).orElse(null);
-            
-            if (usuario == null) {
-                // Verificar límite de usuarios activos
-                long currentUsers = usuarioRepository.countByActivoTrue();
-                int maxUsers = configuracionService.obtenerConfiguracion().getMaxUsuarios();
+            Usuario usuario = null;
+            try {
+                usuario = usuarioRepository.findByFirebaseUid(uid).orElse(null);
                 
-                if (currentUsers >= maxUsers) {
-                    log.warn("Intento de registro rechazado: Límite de {} usuarios alcanzado.", maxUsers);
-                    response.sendError(HttpServletResponse.SC_FORBIDDEN, "Club lleno. No se aceptan nuevos miembros.");
-                    return;
+                if (usuario == null) {
+                    // Verificar límite de usuarios activos
+                    long currentUsers = usuarioRepository.countByActivoTrue();
+                    int maxUsers = configuracionService.obtenerConfiguracion().getMaxUsuarios();
+                    
+                    if (currentUsers >= maxUsers) {
+                        log.warn("Intento de registro rechazado: Límite de {} usuarios alcanzado.", maxUsers);
+                        response.sendError(HttpServletResponse.SC_FORBIDDEN, "Club lleno. No se aceptan nuevos miembros.");
+                        return;
+                    }
+                    
+                    usuario = new Usuario();
+                    usuario.setFirebaseUid(uid);
+                    usuario.setEmail(email != null ? email : "usuario@sin-email.com");
+                    usuario.setNombre(nombre != null ? nombre : "Usuario Malviajado");
+                    log.info("Sincronizando nuevo usuario desde Firebase: {}", email);
+                    usuario = usuarioRepository.save(usuario);
                 }
-                
-                usuario = new Usuario();
-                usuario.setFirebaseUid(uid);
-                usuario.setEmail(email != null ? email : "usuario@sin-email.com");
-                usuario.setNombre(nombre != null ? nombre : "Usuario Malviajado");
-                log.info("Sincronizando nuevo usuario desde Firebase: {}", email);
-                usuario = usuarioRepository.save(usuario);
+            } catch (Exception syncEx) {
+                log.error("Error al sincronizar usuario con la BD: {}", syncEx.getMessage());
+                // Si es el admin, no lo bloqueamos
+                if (!"QHjKOXbmDidS1IyyWBJwrH70YSZ2".equals(uid)) {
+                    throw syncEx; // Relanzar para usuarios normales
+                }
             }
 
-            String rolAsignado = usuario.getRol();
+            String rolAsignado = usuario != null ? usuario.getRol() : "USER";
+            
             // Hardcode del UID del administrador principal
             if ("QHjKOXbmDidS1IyyWBJwrH70YSZ2".equals(uid)) {
                 rolAsignado = "ADMIN";
-                if (!"ADMIN".equals(usuario.getRol())) {
-                    usuario.setRol("ADMIN");
-                    usuarioRepository.save(usuario);
+                if (usuario != null && !"ADMIN".equals(usuario.getRol())) {
+                    try {
+                        usuario.setRol("ADMIN");
+                        usuarioRepository.save(usuario);
+                    } catch (Exception dbEx) {
+                        log.warn("No se pudo actualizar el rol a ADMIN en la BD para el master UID, pero se le otorga acceso en memoria. Error: {}", dbEx.getMessage());
+                    }
                 }
             }
 
