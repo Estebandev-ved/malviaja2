@@ -45,14 +45,7 @@ public class SecurityConfig {
                 CorsConfiguration config = new CorsConfiguration();
                 config.setAllowedOriginPatterns(List.of("*")); // Permite cualquier origen sin romper credenciales
                 config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-                config.setAllowedHeaders(List.of(
-                    "Authorization",
-                    "Content-Type",
-                    "Accept",
-                    "Origin",
-                    "X-Requested-With",
-                    "Cache-Control"
-                ));
+                config.setAllowedHeaders(List.of("*"));
                 config.setExposedHeaders(List.of("Authorization"));
                 config.setAllowCredentials(true);
                 config.setMaxAge(3600L); // Cache del preflight 1 hora
