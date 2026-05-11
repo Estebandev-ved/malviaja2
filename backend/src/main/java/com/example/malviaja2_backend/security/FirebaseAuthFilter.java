@@ -103,6 +103,13 @@ public class FirebaseAuthFilter extends OncePerRequestFilter {
         } catch (Exception e) {
             log.warn("Token Firebase inválido [{}]: {}", request.getRequestURI(), e.getMessage());
             SecurityContextHolder.clearContext();
+            
+            // Enviar el error directamente al cliente para depuración
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            response.setContentType("application/json");
+            response.setCharacterEncoding("UTF-8");
+            response.getWriter().write("{\"error\": \"Error de Autenticación\", \"mensaje\": \"" + e.getMessage() + "\"}");
+            return;
         }
 
         chain.doFilter(request, response);
