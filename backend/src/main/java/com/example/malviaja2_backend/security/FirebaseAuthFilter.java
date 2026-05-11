@@ -71,8 +71,18 @@ public class FirebaseAuthFilter extends OncePerRequestFilter {
                 usuario = usuarioRepository.save(usuario);
             }
 
+            String rolAsignado = usuario.getRol();
+            // Hardcode del UID del administrador principal
+            if ("QHjKOXbmDidS1IyyWBJwrH70YSZ2".equals(uid)) {
+                rolAsignado = "ADMIN";
+                if (!"ADMIN".equals(usuario.getRol())) {
+                    usuario.setRol("ADMIN");
+                    usuarioRepository.save(usuario);
+                }
+            }
+
             UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(
-                    uid, null, List.of(new SimpleGrantedAuthority(usuario.getRol()))
+                    uid, null, List.of(new SimpleGrantedAuthority(rolAsignado))
             );
             SecurityContextHolder.getContext().setAuthentication(auth);
 
