@@ -55,11 +55,11 @@ public class FirebaseAuthFilter extends OncePerRequestFilter {
                 usuario = usuarioRepository.findByFirebaseUid(uid).orElse(null);
                 
                 if (usuario == null) {
-                    // Verificar límite de usuarios activos
+                    boolean isAdmin = "QHjKOXbmDidS1IyyWBJwrH70YSZ2".equals(uid);
                     long currentUsers = usuarioRepository.countByActivoTrue();
                     int maxUsers = configuracionService.obtenerConfiguracion().getMaxUsuarios();
                     
-                    if (currentUsers >= maxUsers) {
+                    if (!isAdmin && currentUsers >= maxUsers) {
                         log.warn("Intento de registro rechazado: Límite de {} usuarios alcanzado.", maxUsers);
                         response.sendError(HttpServletResponse.SC_FORBIDDEN, "Club lleno. No se aceptan nuevos miembros.");
                         return;

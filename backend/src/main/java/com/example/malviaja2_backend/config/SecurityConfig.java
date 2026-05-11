@@ -58,6 +58,7 @@ public class SecurityConfig {
                 // Endpoints públicos
                 .requestMatchers(HttpMethod.GET, "/api/productos").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/configuracion").permitAll()
+                .requestMatchers("/error").permitAll()
                 // SEGURIDAD: El endpoint /api/setup/make-admin fue ELIMINADO intencionalmente.
                 // No debe existir ningún endpoint público de elevación de privilegios en producción.
                 // Endpoints autenticados
