@@ -61,6 +61,9 @@ const ConfigAdmin = () => {
     try {
       const res = await authFetch('/api/configuracion', {
         method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json'
+        },
         body: JSON.stringify(config)
       });
       if (res.ok) {
@@ -124,7 +127,7 @@ const ConfigAdmin = () => {
 
       {/* SECCIÓN: EXCLUSIVIDAD Y MARKETING */}
       <Section title="Club Exclusivo (Reglas)" icon={<Users size={22} style={{ color: '#ff9800' }} />}>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1.5rem' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1.5rem' }}>
           <Field label="Límite Máximo de Usuarios" description="Cantidad máxima de miembros activos permitidos en el club.">
             <input type="number" value={config.maxUsuarios} onChange={e => handleChange('maxUsuarios', Number(e.target.value))} style={inputStyle} />
           </Field>
@@ -139,7 +142,7 @@ const ConfigAdmin = () => {
 
       {/* SECCIÓN: TIENDA */}
       <Section title="Información de la Tienda" icon={<Store size={22} style={{ color: 'var(--color-primary)' }} />}>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1.5rem' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1.5rem' }}>
           <Field label="Nombre de la Tienda" description="Nombre público de tu negocio.">
             <input type="text" value={config.storeName} onChange={e => handleChange('storeName', e.target.value)} style={inputStyle} />
           </Field>
@@ -170,7 +173,7 @@ const ConfigAdmin = () => {
         <Field label="Estado de Notificaciones">
           <Toggle value={config.telegramEnabled} onChange={v => handleChange('telegramEnabled', v)} label={config.telegramEnabled ? 'Activo — Recibirás notificaciones en Telegram' : 'Desactivado — No llegarán alertas'} />
         </Field>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1.5rem' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1.5rem' }}>
           <Field label="Bot Token" description="Token secreto del bot de Telegram. No compartir.">
             <input type="password" value={config.telegramToken} onChange={e => handleChange('telegramToken', e.target.value)} style={inputStyle} />
           </Field>
@@ -185,7 +188,7 @@ const ConfigAdmin = () => {
 
       {/* SECCIÓN: ENVÍO */}
       <Section title="Logística de Envío" icon={<Truck size={22} style={{ color: '#4caf50' }} />}>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1.5rem' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1.5rem' }}>
           <Field label="Precio por Kilómetro ($)" description="Tarifa que se cobra por km de distancia desde la sede.">
             <input type="number" value={config.deliveryPricePerKm} onChange={e => handleChange('deliveryPricePerKm', Number(e.target.value))} style={inputStyle} />
           </Field>
@@ -203,7 +206,7 @@ const ConfigAdmin = () => {
 
       {/* SECCIÓN: SEGURIDAD */}
       <Section title="Seguridad y Acceso" icon={<Shield size={22} style={{ color: '#f44336' }} />}>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1.5rem' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1.5rem' }}>
           <Field label="Verificación de Edad (Age Gate)">
             <Toggle value={config.ageGateEnabled} onChange={v => handleChange('ageGateEnabled', v)} label={config.ageGateEnabled ? 'Activado — Se pide la edad al entrar' : 'Desactivado'} />
           </Field>
