@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { Star, Target, Sparkles, FlaskConical, Clock, ShieldCheck, Zap } from 'lucide-react';
+import { Star, Target, Sparkles, FlaskConical, Clock, ShieldCheck, Zap, Lock, Percent, Timer } from 'lucide-react';
 import './Home.css';
 
 const Home = () => {
@@ -9,8 +9,25 @@ const Home = () => {
       <section className="hero">
         <div className="container hero__container">
           <div className="hero__content">
-            <div style={{ display: 'inline-block', background: 'var(--color-primary)', color: 'var(--color-text-on-primary)', padding: '0.5rem 1rem', borderRadius: 'var(--radius-full)', fontWeight: 'bold', fontSize: '0.9rem', marginBottom: '1.5rem', letterSpacing: '1px', textTransform: 'uppercase' }}>
-              NO vendemos drogas, vendemos postres
+            <div className="slogan-badge" style={{ 
+              display: 'inline-flex', 
+              alignItems: 'center', 
+              gap: '0.5rem', 
+              background: 'rgba(0,0,0,0.4)', 
+              border: '1px solid rgba(255,215,0,0.3)', 
+              color: '#fff', 
+              padding: '0.5rem 1.2rem', 
+              borderRadius: '50px', 
+              fontWeight: '600', 
+              fontSize: '0.85rem', 
+              marginBottom: '2rem', 
+              letterSpacing: '2px', 
+              textTransform: 'uppercase',
+              backdropFilter: 'blur(10px)',
+              boxShadow: '0 4px 15px rgba(0,0,0,0.2)'
+            }}>
+              <Sparkles size={16} color="var(--color-secondary)" />
+              <span>NO vendemos drogas, vendemos <span style={{color: 'var(--color-secondary)', fontWeight: '800'}}>postres</span></span>
             </div>
             <h1 className="hero__title">
               Siente el <span className="text-secondary">Viaje</span>. Disfruta el Sabor.
@@ -44,26 +61,52 @@ const Home = () => {
       </section>
 
       {/* Exclusivity / FOMO Section */}
-      <section style={{ background: '#212121', color: '#fff', padding: '4rem 0', textAlign: 'center', borderTop: '4px solid var(--color-secondary)' }}>
-        <div className="container" style={{ maxWidth: '800px' }}>
-          <ShieldCheck size={48} color="var(--color-secondary)" style={{ margin: '0 auto 1.5rem' }} />
-          <h2 style={{ fontSize: '2.5rem', marginBottom: '1.5rem', color: 'var(--color-secondary)', fontWeight: '900', textTransform: 'uppercase', letterSpacing: '2px' }}>Acceso Confidencial</h2>
-          <p style={{ fontSize: '1.2rem', lineHeight: '1.8', marginBottom: '2rem', color: '#ccc' }}>
-            Malviaja2 no es para todos. Somos una comunidad cerrada y estrictamente confidencial. 
-            Actualmente solo permitimos un <strong>máximo de 50 cuentas activas</strong>.
+      <section style={{ 
+        background: 'linear-gradient(135deg, #121212 0%, #1a1a1a 100%)', 
+        color: '#fff', 
+        padding: '5rem 0', 
+        textAlign: 'center', 
+        borderTop: '1px solid rgba(255,215,0,0.2)',
+        borderBottom: '1px solid rgba(255,215,0,0.2)',
+        position: 'relative',
+        overflow: 'hidden'
+      }}>
+        {/* Decorative background elements */}
+        <div style={{ position: 'absolute', top: '-100px', left: '-100px', width: '300px', height: '300px', background: 'var(--color-secondary)', filter: 'blur(150px)', opacity: '0.15' }}></div>
+        <div style={{ position: 'absolute', bottom: '-100px', right: '-100px', width: '300px', height: '300px', background: 'var(--color-primary)', filter: 'blur(150px)', opacity: '0.15' }}></div>
+
+        <div className="container" style={{ maxWidth: '800px', position: 'relative', zIndex: 1 }}>
+          <div style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '80px', height: '80px', borderRadius: '50%', background: 'rgba(255,215,0,0.1)', border: '1px solid rgba(255,215,0,0.3)', marginBottom: '1.5rem' }}>
+            <Lock size={40} color="var(--color-secondary)" />
+          </div>
+          <h2 style={{ fontSize: '2.8rem', marginBottom: '1rem', color: '#fff', fontWeight: '900', letterSpacing: '3px', textTransform: 'uppercase' }}>
+            Acceso <span style={{ color: 'var(--color-secondary)' }}>Privado</span>
+          </h2>
+          <p style={{ fontSize: '1.1rem', lineHeight: '1.8', marginBottom: '3rem', color: '#b0b0b0', maxWidth: '600px', margin: '0 auto 3rem auto' }}>
+            Malviaja2 no es para todos. Somos un club confidencial y estrictamente reservado. 
+            Actualmente nuestro aforo está limitado a un <strong>máximo de 50 socios activos</strong>.
           </p>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1.5rem', textAlign: 'left', marginBottom: '3rem' }}>
-            <div style={{ background: 'rgba(255,255,255,0.05)', padding: '1.5rem', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.1)' }}>
-              <h4 style={{ color: 'var(--color-secondary)', marginBottom: '0.5rem', fontSize: '1.1rem' }}>🔥 20% OFF Bienvenida</h4>
-              <p style={{ fontSize: '0.9rem', color: '#aaa' }}>Obtén un 20% de descuento automático en tu primer viaje por formar parte del club.</p>
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '2rem', textAlign: 'left', marginBottom: '3.5rem' }}>
+            <div style={{ background: 'rgba(255,255,255,0.03)', padding: '2rem', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.08)', backdropFilter: 'blur(10px)', transition: 'transform 0.3s ease', cursor: 'default' }} onMouseOver={(e) => e.currentTarget.style.transform = 'translateY(-5px)'} onMouseOut={(e) => e.currentTarget.style.transform = 'translateY(0)'}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1rem' }}>
+                <Percent size={24} color="var(--color-secondary)" />
+                <h4 style={{ color: '#fff', fontSize: '1.2rem', fontWeight: '700', margin: 0 }}>Beneficio de Ingreso</h4>
+              </div>
+              <p style={{ fontSize: '0.95rem', color: '#999', lineHeight: '1.6' }}>Obtén un 20% de descuento automático en tu primera orden como bienvenida al club.</p>
             </div>
-            <div style={{ background: 'rgba(255,255,255,0.05)', padding: '1.5rem', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.1)' }}>
-              <h4 style={{ color: '#ff5252', marginBottom: '0.5rem', fontSize: '1.1rem' }}>⚠️ Regla de Inactividad</h4>
-              <p style={{ fontSize: '0.9rem', color: '#aaa' }}>Para mantener el cupo, debes hacer al menos un pedido mínimo de $15.000 cada 15 días, o tu cuenta será desactivada para darle espacio a alguien más.</p>
+            
+            <div style={{ background: 'rgba(255,255,255,0.03)', padding: '2rem', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.08)', backdropFilter: 'blur(10px)', transition: 'transform 0.3s ease', cursor: 'default' }} onMouseOver={(e) => e.currentTarget.style.transform = 'translateY(-5px)'} onMouseOut={(e) => e.currentTarget.style.transform = 'translateY(0)'}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1rem' }}>
+                <Timer size={24} color="#ff5252" />
+                <h4 style={{ color: '#fff', fontSize: '1.2rem', fontWeight: '700', margin: 0 }}>Mantenimiento de Cupo</h4>
+              </div>
+              <p style={{ fontSize: '0.95rem', color: '#999', lineHeight: '1.6' }}>Para conservar tu membresía, requerimos un pedido mínimo de $15.000 COP cada 15 días.</p>
             </div>
           </div>
-          <Link to="/login" className="btn btn--secondary" style={{ padding: '1rem 3rem', fontSize: '1.2rem', fontWeight: 'bold' }}>
-            Verificar Disponibilidad de Cupos
+          
+          <Link to="/login" className="btn btn--secondary" style={{ padding: '1.2rem 3rem', fontSize: '1.1rem', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '1px', boxShadow: '0 10px 25px rgba(255,215,0,0.2)', borderRadius: '50px' }}>
+            Verificar Disponibilidad
           </Link>
         </div>
       </section>
