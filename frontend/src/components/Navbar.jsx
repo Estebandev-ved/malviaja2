@@ -45,7 +45,13 @@ const Navbar = () => {
           </button>
 
           {user ? (
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', marginLeft: '1rem' }} onClick={() => navigate('/perfil')}>
+            <div style={{ display: 'flex', alignItems: 'center' }}>
+              {(user.rol === 'ADMIN' || user.uid === 'QHjKOXbmDidS1IyyWBJwrH70YSZ2') && (
+                <button className="btn btn--secondary" style={{ marginLeft: '1rem', padding: '0.4rem 1rem', fontSize: '0.9rem' }} onClick={() => navigate('/admin')}>
+                  Panel Admin
+                </button>
+              )}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', marginLeft: '1rem' }} onClick={() => navigate('/perfil')}>
               {user.photoURL ? (
                 <img src={user.photoURL} alt="Perfil" style={{ width: '36px', height: '36px', borderRadius: '50%', objectFit: 'cover', border: '2px solid var(--color-primary)' }} />
               ) : (
@@ -53,6 +59,7 @@ const Navbar = () => {
                   {user.email.charAt(0).toUpperCase()}
                 </div>
               )}
+              </div>
             </div>
           ) : (
             <button className="btn" style={{ background: 'transparent', color: 'var(--color-primary-dark)', marginLeft: '1rem', padding: '0.5rem' }} onClick={() => navigate('/login')}>
@@ -80,6 +87,16 @@ const Navbar = () => {
               {link.name}
             </Link>
           ))}
+          {user && (user.rol === 'ADMIN' || user.uid === 'QHjKOXbmDidS1IyyWBJwrH70YSZ2') && (
+            <Link 
+              to="/admin"
+              className="navbar__mobile-link"
+              style={{ color: 'var(--color-primary-dark)', background: 'var(--color-secondary)' }}
+              onClick={() => setIsOpen(false)}
+            >
+              Panel Admin
+            </Link>
+          )}
         </div>
       )}
     </nav>
