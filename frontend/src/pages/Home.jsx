@@ -35,15 +35,15 @@ const Home = () => {
             <p className="hero__subtitle">
               Brownies cannábicos premium hechos con los mejores ingredientes y la dosis perfecta para una experiencia inigualable, totalmente controlada y segura.
             </p>
-            <div className="hero__actions" style={{ display: 'flex', flexDirection: 'column', gap: '1rem', width: '100%', maxWidth: '400px', margin: '0 auto' }}>
-              <Link to="/login" className="btn btn--primary hero__btn" style={{ fontSize: '1.2rem', padding: '1.25rem', background: 'var(--color-primary-dark)', boxShadow: '0 0 20px rgba(93,64,55,0.4)', animation: 'pulse 2s infinite', display: 'flex', alignItems: 'center', gap: '0.5rem', justifyContent: 'center' }}>
+            <div className="hero__actions">
+              <Link to="/login" className="btn btn--primary hero__btn hero__btn--pulse">
                 <ShieldCheck size={24} /> Solicitar Acceso al Club
               </Link>
-              <div style={{ display: 'flex', gap: '1rem' }}>
+              <div className="hero__secondary-actions">
                 <Link to="/comestibles" className="btn btn--secondary hero__btn" style={{ flex: 1 }}>
                   Catálogo Clásico
                 </Link>
-                <Link to="/quienes-somos" className="btn btn--primary hero__btn" style={{ flex: 1, background: 'transparent', border: '1px solid var(--color-primary)', color: 'var(--color-primary)' }}>
+                <Link to="/quienes-somos" className="btn btn--primary hero__btn hero__btn--outline">
                   Conócenos
                 </Link>
               </div>
@@ -61,10 +61,9 @@ const Home = () => {
       </section>
 
       {/* Exclusivity / FOMO Section */}
-      <section style={{ 
+      <section className="exclusivity__section" style={{ 
         background: 'linear-gradient(135deg, #121212 0%, #1a1a1a 100%)', 
         color: '#fff', 
-        padding: '5rem 0', 
         textAlign: 'center', 
         borderTop: '1px solid rgba(255,215,0,0.2)',
         borderBottom: '1px solid rgba(255,215,0,0.2)',
@@ -79,7 +78,7 @@ const Home = () => {
           <div style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '80px', height: '80px', borderRadius: '50%', background: 'rgba(255,215,0,0.1)', border: '1px solid rgba(255,215,0,0.3)', marginBottom: '1.5rem' }}>
             <Lock size={40} color="var(--color-secondary)" />
           </div>
-          <h2 style={{ fontSize: '2.8rem', marginBottom: '1rem', color: '#fff', fontWeight: '900', letterSpacing: '3px', textTransform: 'uppercase' }}>
+          <h2 className="exclusivity__title" style={{ marginBottom: '1rem', color: '#fff', fontWeight: '900', letterSpacing: '3px', textTransform: 'uppercase' }}>
             Acceso <span style={{ color: 'var(--color-secondary)' }}>Privado</span>
           </h2>
           <p style={{ fontSize: '1.1rem', lineHeight: '1.8', marginBottom: '3rem', color: '#b0b0b0', maxWidth: '600px', margin: '0 auto 3rem auto' }}>

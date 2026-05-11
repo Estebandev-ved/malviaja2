@@ -43,10 +43,8 @@ public class SecurityConfig {
         http
             .cors(cors -> cors.configurationSource(request -> {
                 CorsConfiguration config = new CorsConfiguration();
-                config.setAllowedOrigins(allowedOrigins);
+                config.setAllowedOriginPatterns(List.of("*")); // Permite cualquier origen sin romper credenciales
                 config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-                // CORREGIDO: setAllowedHeaders("*") + setAllowCredentials(true) viola la spec CORS.
-                // Con credenciales activas, los headers deben ser explícitos (no comodín).
                 config.setAllowedHeaders(List.of(
                     "Authorization",
                     "Content-Type",
@@ -66,6 +64,7 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> auth
                 // Endpoints públicos
                 .requestMatchers(HttpMethod.GET, "/api/productos").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/configuracion").permitAll()
                 // SEGURIDAD: El endpoint /api/setup/make-admin fue ELIMINADO intencionalmente.
                 // No debe existir ningún endpoint público de elevación de privilegios en producción.
                 // Endpoints autenticados
