@@ -107,13 +107,22 @@ const useStore = create((set, get) => {
     cuponesActivos: state.cuponesActivos.filter(c => c.cupoId !== cupoId)
   })),
 
-  // Productos del catálogo
-  productos: [],
+  // Productos del catálogo iniciales para carga ultra-rápida (Optimistic UI)
+  productos: [
+    { id: 1, nombre: 'Brownie Clásico', precio: 15000, dosis: 'Media', descripcion: 'Chocolate belga, dosis perfecta para relajarse.' },
+    { id: 2, nombre: 'Brownie Espacial', precio: 20000, dosis: 'Alta', descripcion: 'Doble chocolate, recomendado para usuarios experimentados.' },
+    { id: 3, nombre: 'Blondie Caramelo', precio: 18000, dosis: 'Media-Alta', descripcion: 'Brownie de chocolate blanco con nueces y caramelo.' }
+  ],
   loading: false,
   error: null,
   
   fetchProductos: async () => {
-    set({ loading: true, error: null });
+    // Si no hay productos, mostramos loading. Si ya hay, actualizamos en 2do plano sin bloquear UI
+    if (get().productos.length === 0) {
+      set({ loading: true, error: null });
+    } else {
+      set({ error: null }); // background refresh
+    }
     try {
       const response = await apiFetch('/api/productos');
       if (!response.ok) throw new Error('Error al cargar productos');
