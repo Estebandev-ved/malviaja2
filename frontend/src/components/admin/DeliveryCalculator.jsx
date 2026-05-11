@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { MapPin, Navigation, DollarSign, Activity, Search, Loader2 } from 'lucide-react';
+import { authFetch } from '../../api';
 
 const DeliveryCalculator = () => {
   const [address, setAddress] = useState('');
@@ -9,8 +10,35 @@ const DeliveryCalculator = () => {
 
   // Estados Flexibles (Ajustables por el Admin)
   const [valorKm, setValorKm] = useState(1500);
-  const [origin, setOrigin] = useState({ lat: 6.2442, lon: -75.5812, name: 'Medellín (Alpujarra)' });
+  const [origin, setOrigin] = useState({ lat: 6.2442, lon: -75.5812, name: 'Cargando Sede...' });
   const [newOriginAddr, setNewOriginAddr] = useState('');
+
+  // Cargar configuración de la tienda al iniciar
+  useEffect(() => {
+    const loadConfig = async () => {
+      try {
+        const res = await authFetch('/api/configuracion');
+        if (res.ok) {
+          const config = await res.json();
+          setValorKm(config.deliveryPricePerKm);
+          
+          // Buscar coordenadas de la sede configurada
+          if (config.deliveryBase) {
+            const geoRes = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(config.deliveryBase)}`);
+            const geoData = await geoRes.json();
+            if (geoData && geoData.length > 0) {
+              setOrigin({ lat: geoData[0].lat, lon: geoData[0].lon, name: config.deliveryBase });
+            } else {
+              setOrigin(prev => ({ ...prev, name: config.deliveryBase }));
+            }
+          }
+        }
+      } catch (e) {
+        console.error("Error cargando config", e);
+      }
+    };
+    loadConfig();
+  }, []);
 
   const calculateDistance = async () => {
     if (!address) return;
@@ -37,21 +65,6 @@ const DeliveryCalculator = () => {
     }
   };
 
-  const updateOrigin = async () => {
-    if (!newOriginAddr) return;
-    try {
-      const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(newOriginAddr)}`);
-      const data = await res.json();
-      if (data.length > 0) {
-        setOrigin({ lat: data[0].lat, lon: data[0].lon, name: newOriginAddr });
-        setNewOriginAddr('');
-        alert("Sede de despacho actualizada correctamente.");
-      }
-    } catch (e) {
-      alert("Error al buscar la nueva sede.");
-    }
-  };
-
   const total = distance ? Math.round(distance * valorKm) : 0;
 
   return (
@@ -73,18 +86,8 @@ const DeliveryCalculator = () => {
             />
           </div>
           <div>
-            <label style={{ fontSize: '0.8rem', fontWeight: 'bold', display: 'block', marginBottom: '0.4rem' }}>Cambiar Ubicación de Sede</label>
-            <div style={{ display: 'flex', gap: '0.5rem' }}>
-              <input 
-                type="text" 
-                placeholder="Nueva dirección de sede..." 
-                value={newOriginAddr}
-                onChange={e => setNewOriginAddr(e.target.value)}
-                style={{ flex: 1, padding: '0.6rem', borderRadius: '4px', border: '1px solid #ddd', fontSize: '0.85rem' }}
-              />
-              <button onClick={updateOrigin} style={{ padding: '0.5rem 1rem', background: 'var(--color-primary-dark)', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '0.8rem' }}>
-                Fijar Sede
-              </button>
+            <div style={{ background: '#e3f2fd', padding: '0.75rem', borderRadius: '4px', fontSize: '0.85rem', color: '#1565c0', marginTop: '1.2rem' }}>
+              💡 <strong>Nota:</strong> Para cambiar permanentemente la Sede de Despacho o el Precio por Km, ve a la pestaña de <strong>Configuración</strong>.
             </div>
           </div>
         </div>

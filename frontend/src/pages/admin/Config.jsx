@@ -2,6 +2,34 @@ import { useState, useEffect } from 'react';
 import { Save, Bell, Truck, Store, Shield, Globe, CheckCircle2, AlertTriangle, Users } from 'lucide-react';
 import { authFetch } from '../../api';
 
+const Section = ({ title, icon, children }) => (
+  <div style={{ background: 'white', padding: '2rem', borderRadius: 'var(--radius-lg)', boxShadow: 'var(--shadow-sm)', marginBottom: '1.5rem' }}>
+    <h2 style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', fontSize: '1.2rem', color: 'var(--color-primary-dark)', marginBottom: '1.5rem', paddingBottom: '0.75rem', borderBottom: '2px solid #f4f6f8' }}>
+      {icon} {title}
+    </h2>
+    {children}
+  </div>
+);
+
+const Field = ({ label, description, children }) => (
+  <div style={{ marginBottom: '1.25rem' }}>
+    <label style={{ display: 'block', fontWeight: 'bold', fontSize: '0.9rem', marginBottom: '0.3rem' }}>{label}</label>
+    {description && <p style={{ fontSize: '0.8rem', color: 'var(--color-text-light)', margin: '0 0 0.5rem' }}>{description}</p>}
+    {children}
+  </div>
+);
+
+const inputStyle = { width: '100%', padding: '0.65rem', borderRadius: '6px', border: '1px solid #ddd', fontSize: '0.9rem' };
+
+const Toggle = ({ value, onChange, label }) => (
+  <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', cursor: 'pointer' }} onClick={() => onChange(!value)}>
+    <div style={{ width: '44px', height: '24px', borderRadius: '12px', background: value ? '#4caf50' : '#ccc', position: 'relative', transition: 'background 0.3s' }}>
+      <div style={{ width: '20px', height: '20px', borderRadius: '50%', background: 'white', position: 'absolute', top: '2px', left: value ? '22px' : '2px', transition: 'left 0.3s', boxShadow: '0 1px 3px rgba(0,0,0,0.2)' }} />
+    </div>
+    <span style={{ fontSize: '0.9rem', fontWeight: '600', color: value ? '#2e7d32' : '#999' }}>{label}</span>
+  </div>
+);
+
 const ConfigAdmin = () => {
   const [saved, setSaved] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -77,34 +105,6 @@ const ConfigAdmin = () => {
       alert("Error al guardar en el servidor");
     }
   };
-
-  const Section = ({ title, icon, children }) => (
-    <div style={{ background: 'white', padding: '2rem', borderRadius: 'var(--radius-lg)', boxShadow: 'var(--shadow-sm)', marginBottom: '1.5rem' }}>
-      <h2 style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', fontSize: '1.2rem', color: 'var(--color-primary-dark)', marginBottom: '1.5rem', paddingBottom: '0.75rem', borderBottom: '2px solid #f4f6f8' }}>
-        {icon} {title}
-      </h2>
-      {children}
-    </div>
-  );
-
-  const Field = ({ label, description, children }) => (
-    <div style={{ marginBottom: '1.25rem' }}>
-      <label style={{ display: 'block', fontWeight: 'bold', fontSize: '0.9rem', marginBottom: '0.3rem' }}>{label}</label>
-      {description && <p style={{ fontSize: '0.8rem', color: 'var(--color-text-light)', margin: '0 0 0.5rem' }}>{description}</p>}
-      {children}
-    </div>
-  );
-
-  const inputStyle = { width: '100%', padding: '0.65rem', borderRadius: '6px', border: '1px solid #ddd', fontSize: '0.9rem' };
-
-  const Toggle = ({ value, onChange, label }) => (
-    <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', cursor: 'pointer' }} onClick={() => onChange(!value)}>
-      <div style={{ width: '44px', height: '24px', borderRadius: '12px', background: value ? '#4caf50' : '#ccc', position: 'relative', transition: 'background 0.3s' }}>
-        <div style={{ width: '20px', height: '20px', borderRadius: '50%', background: 'white', position: 'absolute', top: '2px', left: value ? '22px' : '2px', transition: 'left 0.3s', boxShadow: '0 1px 3px rgba(0,0,0,0.2)' }} />
-      </div>
-      <span style={{ fontSize: '0.9rem', fontWeight: '600', color: value ? '#2e7d32' : '#999' }}>{label}</span>
-    </div>
-  );
 
   return (
     <div>
