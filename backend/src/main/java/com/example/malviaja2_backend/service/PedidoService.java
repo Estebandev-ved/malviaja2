@@ -8,8 +8,8 @@ import com.example.malviaja2_backend.repository.PedidoRepository;
 import com.example.malviaja2_backend.repository.ProductoRepository;
 import com.example.malviaja2_backend.repository.UsuarioRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -26,10 +26,10 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
-@Slf4j
 @Service
-@RequiredArgsConstructor
 public class PedidoService {
+
+    private static final Logger log = LoggerFactory.getLogger(PedidoService.class);
 
     private static final Set<String> ESTADOS_VALIDOS = Set.of(
             "PENDIENTE",
@@ -46,6 +46,24 @@ public class PedidoService {
     private final TelegramBotService telegramBotService;
     private final ObjectMapper objectMapper;
     private final ConfiguracionService configuracionService;
+    private final EmailNotificationService emailNotificationService;
+
+    public PedidoService(
+            PedidoRepository pedidoRepository,
+            UsuarioRepository usuarioRepository,
+            ProductoRepository productoRepository,
+            TelegramBotService telegramBotService,
+            ObjectMapper objectMapper,
+            ConfiguracionService configuracionService,
+            EmailNotificationService emailNotificationService) {
+        this.pedidoRepository = pedidoRepository;
+        this.usuarioRepository = usuarioRepository;
+        this.productoRepository = productoRepository;
+        this.telegramBotService = telegramBotService;
+        this.objectMapper = objectMapper;
+        this.configuracionService = configuracionService;
+        this.emailNotificationService = emailNotificationService;
+    }
 
     @Transactional
     public Pedido procesarCheckout(PedidoRequest request, MultipartFile comprobante) throws Exception {
@@ -153,14 +171,23 @@ public class PedidoService {
     }
 
     @Transactional
-    public Optional<Pedido> actualizarEstado(Long pedidoId, String nuevoEstado) {
+    public Optional<Pedido> actualizarEstado(Long pedidoId, String nuevoEstado, String motivo) {
         if (nuevoEstado == null || !ESTADOS_VALIDOS.contains(nuevoEstado)) {
             throw new IllegalArgumentException("Estado invalido. Estados permitidos: " + ESTADOS_VALIDOS);
         }
 
         return pedidoRepository.findById(pedidoId).map(pedido -> {
             pedido.setEstado(nuevoEstado);
-            return pedidoRepository.save(pedido);
+            Pedido actualizado = pedidoRepository.save(pedido);
+
+            if ("PREPARANDO".equals(nuevoEstado) || "CANCELADO".equals(nuevoEstado)) {
+                String email = pedido.getUsuario() != null ? pedido.getUsuario().getEmail() : null;
+                String nombre = pedido.getNombreReceptor() != null ? pedido.getNombreReceptor() : "Cliente";
+                String comprobanteUrl = "https://via.placeholder.com/640x420?text=Comprobante+Rechazado";
+                emailNotificationService.enviarEstadoPedido(email, nombre, pedido.getId(), nuevoEstado, motivo, comprobanteUrl);
+            }
+
+            return actualizado;
         });
     }
 

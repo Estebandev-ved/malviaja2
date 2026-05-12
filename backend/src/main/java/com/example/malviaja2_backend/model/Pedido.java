@@ -71,4 +71,12 @@ public class Pedido {
     public void setEstado(String estado) {
         this.estado = estado;
     }
+
+    public Usuario getUsuario() {
+        return usuario;
+    }
+
+    public String getNombreReceptor() {
+        return nombreReceptor;
+    }
 }

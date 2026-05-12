@@ -23,6 +23,17 @@ const AceptarPedidos = () => {
   const [loading, setLoading] = useState(true);
   const [filtro, setFiltro] = useState('PENDIENTE');
   const [updating, setUpdating] = useState(null);
+  const [rechazoModal, setRechazoModal] = useState(null);
+  const [motivoRechazo, setMotivoRechazo] = useState('Comprobante ilegible');
+  const [motivoLibre, setMotivoLibre] = useState('');
+
+  const MOTIVOS_RECHAZO = [
+    'Comprobante ilegible',
+    'Pago no corresponde',
+    'Datos incompletos',
+    'Zona no cubierta',
+    'Otro'
+  ];
 
   const fetchPedidos = async () => {
     setLoading(true);
@@ -48,13 +59,13 @@ const AceptarPedidos = () => {
     return pedidos.filter(p => p.estado === filtro);
   }, [filtro, pedidos, enProceso]);
 
-  const actualizarEstado = async (pedidoId, estado) => {
+  const actualizarEstado = async (pedidoId, estado, motivo) => {
     setUpdating(pedidoId);
     try {
       const res = await authFetch(`/api/pedidos/${pedidoId}/estado`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ estado }),
+        body: JSON.stringify({ estado, motivo }),
       });
       if (res.ok) {
         const actualizado = await res.json();
@@ -62,6 +73,19 @@ const AceptarPedidos = () => {
       }
     } catch (_) {}
     setUpdating(null);
+  };
+
+  const abrirRechazo = (pedido) => {
+    setRechazoModal(pedido);
+    setMotivoRechazo('Comprobante ilegible');
+    setMotivoLibre('');
+  };
+
+  const confirmarRechazo = async () => {
+    if (!rechazoModal) return;
+    const motivoFinal = motivoRechazo === 'Otro' ? motivoLibre.trim() : motivoRechazo;
+    await actualizarEstado(rechazoModal.id, 'CANCELADO', motivoFinal || 'No especificado');
+    setRechazoModal(null);
   };
 
   return (
@@ -172,7 +196,7 @@ const AceptarPedidos = () => {
                           )}
                           {p.estado !== 'CANCELADO' && p.estado !== 'ENTREGADO' && (
                             <button
-                              onClick={() => actualizarEstado(p.id, 'CANCELADO')}
+                              onClick={() => abrirRechazo(p)}
                               disabled={updating === p.id}
                               style={{ border: '1px solid #f44336', background: '#fff5f5', color: '#c62828', padding: '0.35rem 0.7rem', borderRadius: '6px', cursor: 'pointer' }}
                             >
@@ -189,6 +213,47 @@ const AceptarPedidos = () => {
           </div>
         )}
       </div>
+
+      {rechazoModal && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.35)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem', zIndex: 40 }}>
+          <div style={{ background: 'white', borderRadius: '16px', padding: '1.5rem', maxWidth: '520px', width: '100%', boxShadow: '0 18px 40px rgba(0,0,0,0.15)' }}>
+            <h2 style={{ marginTop: 0, marginBottom: '0.5rem' }}>Motivo del rechazo</h2>
+            <p style={{ marginTop: 0, color: 'var(--color-text-light)' }}>Selecciona un motivo para notificar al cliente.</p>
+
+            <div style={{ display: 'grid', gap: '0.5rem', marginBottom: '1rem' }}>
+              {MOTIVOS_RECHAZO.map((m) => (
+                <label key={m} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
+                  <input type="radio" name="motivo" checked={motivoRechazo === m} onChange={() => setMotivoRechazo(m)} />
+                  <span>{m}</span>
+                </label>
+              ))}
+            </div>
+
+            {motivoRechazo === 'Otro' && (
+              <textarea
+                rows={3}
+                placeholder="Escribe el motivo..."
+                value={motivoLibre}
+                onChange={(e) => setMotivoLibre(e.target.value)}
+                style={{ width: '100%', padding: '0.6rem', borderRadius: '8px', border: '1px solid #ddd', marginBottom: '1rem' }}
+              />
+            )}
+
+            <div style={{ background: '#f7f2e7', borderRadius: '12px', padding: '0.75rem', display: 'flex', gap: '0.75rem', alignItems: 'center', marginBottom: '1.5rem' }}>
+              <img src="https://via.placeholder.com/160x110?text=Comprobante" alt="Comprobante" style={{ borderRadius: '8px', objectFit: 'cover' }} />
+              <div>
+                <p style={{ margin: 0, fontWeight: 'bold' }}>Comprobante de referencia</p>
+                <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--color-text-light)' }}>Imagen simulada para explicar el rechazo.</p>
+              </div>
+            </div>
+
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem' }}>
+              <button onClick={() => setRechazoModal(null)} style={{ border: '1px solid #ddd', background: 'white', padding: '0.5rem 1rem', borderRadius: '8px', cursor: 'pointer' }}>Cancelar</button>
+              <button onClick={confirmarRechazo} style={{ border: 'none', background: '#c62828', color: 'white', padding: '0.5rem 1rem', borderRadius: '8px', cursor: 'pointer' }}>Confirmar rechazo</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

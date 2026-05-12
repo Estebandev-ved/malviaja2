@@ -6,8 +6,8 @@ import com.example.malviaja2_backend.model.Usuario;
 import com.example.malviaja2_backend.repository.UsuarioRepository;
 import com.example.malviaja2_backend.service.PedidoService;
 import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -21,14 +21,18 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-@Slf4j
 @RestController
 @RequestMapping("/api/pedidos")
-@RequiredArgsConstructor
 public class PedidoController {
 
     private final PedidoService pedidoService;
     private final UsuarioRepository usuarioRepository;
+    private static final Logger log = LoggerFactory.getLogger(PedidoController.class);
+
+    public PedidoController(PedidoService pedidoService, UsuarioRepository usuarioRepository) {
+        this.pedidoService = pedidoService;
+        this.usuarioRepository = usuarioRepository;
+    }
 
     @GetMapping("/usuario/{firebaseUid}")
     @PreAuthorize("authentication.name == #firebaseUid or hasAuthority('ADMIN')")
@@ -84,8 +88,9 @@ public class PedidoController {
     @PreAuthorize("hasAuthority('ADMIN')")
     public ResponseEntity<?> actualizarEstado(@PathVariable Long id, @RequestBody Map<String, String> body) {
         String estado = body.get("estado");
+        String motivo = body.get("motivo");
         try {
-            return pedidoService.actualizarEstado(id, estado)
+            return pedidoService.actualizarEstado(id, estado, motivo)
                     .<ResponseEntity<?>>map(ResponseEntity::ok)
                     .orElse(ResponseEntity.notFound().build());
         } catch (IllegalArgumentException e) {

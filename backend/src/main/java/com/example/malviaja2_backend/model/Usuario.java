@@ -66,4 +66,24 @@ public class Usuario {
     public void setActivo(Boolean activo) {
         this.activo = activo;
     }
+
+    public void setFirebaseUid(String firebaseUid) {
+        this.firebaseUid = firebaseUid;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public void setNombre(String nombre) {
+        this.nombre = nombre;
+    }
+
+    public void setDireccionPorDefecto(String direccionPorDefecto) {
+        this.direccionPorDefecto = direccionPorDefecto;
+    }
+
+    public void setTelefonoPorDefecto(String telefonoPorDefecto) {
+        this.telefonoPorDefecto = telefonoPorDefecto;
+    }
 }

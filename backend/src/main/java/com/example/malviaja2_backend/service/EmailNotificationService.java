@@ -1,11 +1,13 @@
 package com.example.malviaja2_backend.service;
 
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
-@Slf4j
 @Service
 public class EmailNotificationService {
+
+    private static final Logger log = LoggerFactory.getLogger(EmailNotificationService.class);
 
     // Aquí inyectaríamos JavaMailSender en el futuro, pero por simplicidad
     // y seguridad (evitar exponer tu clave), por ahora simularemos el envío.
@@ -28,5 +30,33 @@ public class EmailNotificationService {
     
     public void enviarPromocion(String emailDestino, String nombreCliente, String promo) {
         log.info("📧 [SIMULADOR EMAIL] Promoción para: {} -> {}", emailDestino, promo);
+    }
+
+    public void enviarEstadoPedido(String emailDestino, String nombreCliente, Long pedidoId, String estado, String motivo, String comprobanteUrl) {
+        String asunto;
+        StringBuilder mensaje = new StringBuilder();
+
+        if ("CANCELADO".equals(estado)) {
+            asunto = "❌ Pedido #" + pedidoId + " rechazado";
+            mensaje.append("Hola ").append(nombreCliente).append(",\n\n")
+                    .append("Tu pedido #").append(pedidoId).append(" fue rechazado.\n")
+                    .append("Motivo: ").append(motivo == null || motivo.isBlank() ? "No especificado" : motivo)
+                    .append("\n\n")
+                    .append("Si deseas, puedes reenviar el comprobante y crear un nuevo pedido.\n");
+            if (comprobanteUrl != null && !comprobanteUrl.isBlank()) {
+                mensaje.append("\nVista de referencia: ").append(comprobanteUrl).append("\n");
+            }
+        } else {
+            asunto = "✅ Pedido #" + pedidoId + " aceptado";
+            mensaje.append("Hola ").append(nombreCliente).append(",\n\n")
+                    .append("Tu pedido #").append(pedidoId).append(" fue aceptado y está en preparación.\n")
+                    .append("Te avisaremos cuando salga a reparto.\n");
+        }
+
+        mensaje.append("\nAtentamente,\nEl Equipo de Malviaja2");
+
+        log.info("📧 [SIMULADOR EMAIL] Enviando a: {}", emailDestino);
+        log.info("Asunto: {}", asunto);
+        log.info("Mensaje: \n{}", mensaje);
     }
 }
