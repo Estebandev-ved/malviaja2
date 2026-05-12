@@ -67,6 +67,7 @@ public class SecurityConfig {
                 // Endpoints solo ADMIN
                 .requestMatchers(HttpMethod.GET,    "/api/pedidos/todos").hasAuthority("ADMIN")
                 .requestMatchers(HttpMethod.GET,    "/api/pedidos/usuarios/todos").hasAuthority("ADMIN")
+                .requestMatchers(HttpMethod.PUT,    "/api/pedidos/*/estado").hasAuthority("ADMIN")
                 .requestMatchers(HttpMethod.PUT,    "/api/pedidos/usuarios/**").hasAuthority("ADMIN")
                 .requestMatchers(HttpMethod.POST,   "/api/productos").hasAuthority("ADMIN")
                 .requestMatchers(HttpMethod.PUT,    "/api/productos/**").hasAuthority("ADMIN")

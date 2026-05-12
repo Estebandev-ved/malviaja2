@@ -25,6 +25,7 @@ import Inventario from './pages/admin/Inventario';
 import Mensajes from './pages/admin/Mensajes';
 import Actividad from './pages/admin/Actividad';
 import MapaEntregas from './pages/admin/MapaEntregas';
+import AceptarPedidos from './pages/admin/AceptarPedidos';
 
 function App() {
   return (
@@ -55,6 +56,7 @@ function App() {
           <Route path="mensajes" element={<Mensajes />} />
           <Route path="actividad" element={<Actividad />} />
           <Route path="mapa" element={<MapaEntregas />} />
+          <Route path="aceptar-pedidos" element={<AceptarPedidos />} />
         </Route>
       </Routes>
     </Router>

@@ -80,6 +80,19 @@ public class PedidoController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
+    @PutMapping("/{id}/estado")
+    @PreAuthorize("hasAuthority('ADMIN')")
+    public ResponseEntity<?> actualizarEstado(@PathVariable Long id, @RequestBody Map<String, String> body) {
+        String estado = body.get("estado");
+        try {
+            return pedidoService.actualizarEstado(id, estado)
+                    .<ResponseEntity<?>>map(ResponseEntity::ok)
+                    .orElse(ResponseEntity.notFound().build());
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
+    }
+
     @PostMapping(value = "/checkout", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<?> procesarCheckout(
             @Valid @ModelAttribute PedidoRequest request,

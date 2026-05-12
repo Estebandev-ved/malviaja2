@@ -24,11 +24,21 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKe
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class PedidoService {
+
+    private static final Set<String> ESTADOS_VALIDOS = Set.of(
+            "PENDIENTE",
+            "ACEPTADO",
+            "PREPARANDO",
+            "EN_CAMINO",
+            "ENTREGADO",
+            "CANCELADO"
+    );
 
     private final PedidoRepository pedidoRepository;
     private final UsuarioRepository usuarioRepository;
@@ -140,6 +150,18 @@ public class PedidoService {
 
     public Page<Pedido> obtenerTodos(Pageable pageable) {
         return pedidoRepository.findAll(pageable);
+    }
+
+    @Transactional
+    public Optional<Pedido> actualizarEstado(Long pedidoId, String nuevoEstado) {
+        if (nuevoEstado == null || !ESTADOS_VALIDOS.contains(nuevoEstado)) {
+            throw new IllegalArgumentException("Estado invalido. Estados permitidos: " + ESTADOS_VALIDOS);
+        }
+
+        return pedidoRepository.findById(pedidoId).map(pedido -> {
+            pedido.setEstado(nuevoEstado);
+            return pedidoRepository.save(pedido);
+        });
     }
 
     // Notificación no bloqueante: si Telegram falla el pedido ya está guardado

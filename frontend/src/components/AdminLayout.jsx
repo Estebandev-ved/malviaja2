@@ -1,5 +1,5 @@
 import { Outlet, Link, useLocation, useNavigate, Navigate } from 'react-router-dom';
-import { LayoutDashboard, ShoppingBag, Users, Settings, LogOut, ShieldAlert, Loader2, TrendingUp, Tag, Package, MessageSquare, Activity, Map } from 'lucide-react';
+import { LayoutDashboard, ShoppingBag, Users, Settings, LogOut, ShieldAlert, Loader2, TrendingUp, Tag, Package, MessageSquare, Activity, Map, ClipboardCheck } from 'lucide-react';
 import useStore from '../store/useStore';
 import './AdminLayout.css';
 
@@ -43,6 +43,7 @@ const AdminLayout = () => {
     { name: 'Mensajes', path: '/admin/mensajes', icon: <MessageSquare size={20} /> },
     { name: 'Actividad', path: '/admin/actividad', icon: <Activity size={20} /> },
     { name: 'Mapa Entregas', path: '/admin/mapa', icon: <Map size={20} /> },
+    { name: 'Aceptar Pedidos', path: '/admin/aceptar-pedidos', icon: <ClipboardCheck size={20} /> },
     { name: 'Configuración', path: '/admin/config', icon: <Settings size={20} /> },
   ];
 
