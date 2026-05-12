@@ -1,8 +1,8 @@
 package com.example.malviaja2_backend.config;
 
 import com.example.malviaja2_backend.service.TelegramBotService;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.telegram.telegrambots.meta.TelegramBotsApi;
@@ -16,14 +16,10 @@ import org.telegram.telegrambots.updatesreceivers.DefaultBotSession;
  * completo de Spring Boot. El resto del backend sigue funcionando aunque
  * Telegram no esté disponible.
  */
-@Slf4j
 @Configuration
 public class BotConfig {
 
-    @Bean
-    public ObjectMapper objectMapper() {
-        return new ObjectMapper();
-    }
+    private static final Logger log = LoggerFactory.getLogger(BotConfig.class);
 
     @Bean
     public TelegramBotsApi telegramBotsApi(TelegramBotService telegramBotService) {
