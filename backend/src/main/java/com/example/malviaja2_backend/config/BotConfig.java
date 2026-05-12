@@ -2,12 +2,21 @@ package com.example.malviaja2_backend.config;
 
 import com.example.malviaja2_backend.service.TelegramBotService;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.telegram.telegrambots.meta.TelegramBotsApi;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import org.telegram.telegrambots.updatesreceivers.DefaultBotSession;
 
+/**
+ * Configuración del bot de Telegram.
+ * SEGURIDAD: El registro del bot está envuelto en try-catch para que un token
+ * inválido, una red caída o cualquier fallo de Telegram NO derrumbe el contexto
+ * completo de Spring Boot. El resto del backend sigue funcionando aunque
+ * Telegram no esté disponible.
+ */
+@Slf4j
 @Configuration
 public class BotConfig {
 
@@ -17,9 +26,23 @@ public class BotConfig {
     }
 
     @Bean
-    public TelegramBotsApi telegramBotsApi(TelegramBotService telegramBotService) throws TelegramApiException {
-        TelegramBotsApi botsApi = new TelegramBotsApi(DefaultBotSession.class);
-        botsApi.registerBot(telegramBotService);
-        return botsApi;
+    public TelegramBotsApi telegramBotsApi(TelegramBotService telegramBotService) {
+        try {
+            TelegramBotsApi botsApi = new TelegramBotsApi(DefaultBotSession.class);
+            botsApi.registerBot(telegramBotService);
+            log.info("✅ Bot de Telegram registrado correctamente: @{}", telegramBotService.getBotUsername());
+            return botsApi;
+        } catch (TelegramApiException e) {
+            // Un token inválido o fallo de red NO debe colapsar el backend completo.
+            // Las notificaciones de Telegram se degradarán de forma silenciosa.
+            log.warn("⚠️ No se pudo registrar el bot de Telegram. Las notificaciones estarán desactivadas. Error: {}", e.getMessage());
+            try {
+                // Devolver una API no registrada es suficiente para satisfacer el contexto de Spring
+                return new TelegramBotsApi(DefaultBotSession.class);
+            } catch (TelegramApiException fallbackEx) {
+                log.error("Error crítico creando TelegramBotsApi de fallback: {}", fallbackEx.getMessage());
+                return null;
+            }
+        }
     }
 }

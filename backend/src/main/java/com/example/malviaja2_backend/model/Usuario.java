@@ -26,10 +26,10 @@ public class Usuario {
 
     private String rol = "USER";
 
-    @Column(nullable = false, columnDefinition = "boolean default true")
+    @Column(nullable = false)
     private Boolean activo = true;
 
-    @Column(name = "primer_compra_realizada", nullable = false, columnDefinition = "boolean default false")
+    @Column(name = "primer_compra_realizada")
     private Boolean primerCompraRealizada = false;
 
     @Column(name = "ultima_compra")
