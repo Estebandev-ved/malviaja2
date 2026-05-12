@@ -104,7 +104,11 @@ const MapaEntregas = () => {
     setLoading(true);
     try {
       const r = await authFetch('/api/pedidos/todos');
-      if (r.ok) setPedidos(await r.json());
+      if (r.ok) {
+        const data = await r.json();
+        const lista = Array.isArray(data) ? data : data?.content || [];
+        setPedidos(lista);
+      }
     } catch (_) {}
     setLoading(false);
   };

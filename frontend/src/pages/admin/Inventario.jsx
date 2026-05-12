@@ -34,7 +34,11 @@ const Inventario = () => {
     setLoading(true);
     try {
       const r = await apiFetch('/api/productos');
-      if (r.ok) setProductos(await r.json());
+      if (r.ok) {
+        const data = await r.json();
+        const lista = Array.isArray(data) ? data : data?.content || [];
+        setProductos(lista);
+      }
     } catch (_) {}
     setLoading(false);
   };
