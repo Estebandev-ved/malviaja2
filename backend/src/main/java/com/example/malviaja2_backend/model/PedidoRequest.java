@@ -32,4 +32,32 @@ public class PedidoRequest {
     @NotBlank(message = "El carrito no puede estar vacío")
     @Size(max = 10000, message = "El carrito supera el tamaño máximo permitido")
     private String carrito;
+
+    public String getUserId() {
+        return userId;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public String getNombre() {
+        return nombre;
+    }
+
+    public String getDireccion() {
+        return direccion;
+    }
+
+    public String getTelefono() {
+        return telefono;
+    }
+
+    public Double getTotal() {
+        return total;
+    }
+
+    public String getCarrito() {
+        return carrito;
+    }
 }

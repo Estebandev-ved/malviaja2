@@ -40,4 +40,8 @@ public class ConfiguracionGlobal {
     private Boolean ageGateEnabled = true;
     private Integer ageGateMinAge = 18;
     private Boolean maintenanceMode = false;
+
+    public Double getCompraMinima() {
+        return compraMinima;
+    }
 }

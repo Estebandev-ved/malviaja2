@@ -42,4 +42,28 @@ public class Usuario {
     protected void onCreate() {
         createdAt = LocalDateTime.now();
     }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public String getRol() {
+        return rol;
+    }
+
+    public void setRol(String rol) {
+        this.rol = rol;
+    }
+
+    public void setPrimerCompraRealizada(Boolean primerCompraRealizada) {
+        this.primerCompraRealizada = primerCompraRealizada;
+    }
+
+    public void setUltimaCompra(LocalDateTime ultimaCompra) {
+        this.ultimaCompra = ultimaCompra;
+    }
+
+    public void setActivo(Boolean activo) {
+        this.activo = activo;
+    }
 }

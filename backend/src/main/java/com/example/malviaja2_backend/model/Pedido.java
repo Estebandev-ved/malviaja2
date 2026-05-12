@@ -39,4 +39,36 @@ public class Pedido {
     protected void onCreate() {
         fechaPedido = LocalDateTime.now();
     }
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setUsuario(Usuario usuario) {
+        this.usuario = usuario;
+    }
+
+    public void setNombreReceptor(String nombreReceptor) {
+        this.nombreReceptor = nombreReceptor;
+    }
+
+    public void setTelefono(String telefono) {
+        this.telefono = telefono;
+    }
+
+    public void setDireccionEnvio(String direccionEnvio) {
+        this.direccionEnvio = direccionEnvio;
+    }
+
+    public void setTotal(Double total) {
+        this.total = total;
+    }
+
+    public void setCarritoJson(String carritoJson) {
+        this.carritoJson = carritoJson;
+    }
+
+    public void setEstado(String estado) {
+        this.estado = estado;
+    }
 }
