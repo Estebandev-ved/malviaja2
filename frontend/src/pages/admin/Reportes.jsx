@@ -28,7 +28,11 @@ const Reportes = () => {
     setLoading(true);
     try {
       const r = await authFetch('/api/pedidos/todos');
-      if (r.ok) setPedidos(await r.json());
+      if (r.ok) {
+        const data = await r.json();
+        const lista = Array.isArray(data) ? data : data?.content || [];
+        setPedidos(lista);
+      }
     } catch (_) {}
     setLoading(false);
   };
@@ -44,7 +48,9 @@ const Reportes = () => {
   // Ventas por día de la semana
   const ventasDia = Array(7).fill(0).map((_, i) => ({ dia: DIAS_ES[i], ventas: 0, pedidos: 0 }));
   pedidos.forEach(p => {
+    if (!p.fechaPedido) return;
     const d = new Date(p.fechaPedido).getDay();
+    if (Number.isNaN(d)) return;
     ventasDia[d].ventas += p.total || 0;
     ventasDia[d].pedidos += 1;
   });
@@ -58,8 +64,9 @@ const Reportes = () => {
     const anio = fecha.getFullYear();
     const total = pedidos
       .filter(p => {
+        if (!p.fechaPedido) return false;
         const d = new Date(p.fechaPedido);
-        return d.getMonth() === mes && d.getFullYear() === anio;
+        return !Number.isNaN(d.getTime()) && d.getMonth() === mes && d.getFullYear() === anio;
       })
       .reduce((s, p) => s + (p.total || 0), 0);
     ventasMes.push({ mes: MESES_ES[mes], total });
@@ -68,7 +75,9 @@ const Reportes = () => {
   // Horas pico
   const horasData = Array(24).fill(0).map((_, h) => ({ hora: `${h}h`, pedidos: 0 }));
   pedidos.forEach(p => {
+    if (!p.fechaPedido) return;
     const h = new Date(p.fechaPedido).getHours();
+    if (Number.isNaN(h)) return;
     horasData[h].pedidos += 1;
   });
   const horasVis = horasData.filter((_, i) => i % 2 === 0);
