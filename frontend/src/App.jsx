@@ -26,10 +26,12 @@ import Mensajes from './pages/admin/Mensajes';
 import Actividad from './pages/admin/Actividad';
 import MapaEntregas from './pages/admin/MapaEntregas';
 import AceptarPedidos from './pages/admin/AceptarPedidos';
+import CustomCursor from './components/CustomCursor';
 
 function App() {
   return (
     <Router>
+      <CustomCursor />
       <AgeGate />
       <Routes>
         {/* Client Routes */}

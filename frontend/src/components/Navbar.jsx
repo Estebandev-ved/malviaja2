@@ -1,6 +1,6 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Menu, X, ShoppingCart } from 'lucide-react';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import useStore from '../store/useStore';
 import './Navbar.css';
 
@@ -9,10 +9,40 @@ const Navbar = () => {
   const { toggleCart, carrito, user } = useStore();
   const location = useLocation();
   const navigate = useNavigate();
+  const linksRef = useRef(null);
 
   const cartCount = carrito.reduce((sum, item) => sum + item.cantidad, 0);
+  const prevCountRef = useRef(cartCount);
+
+  useEffect(() => {
+    const badge = linksRef.current?.querySelector('.cart-badge');
+    if (!badge) {
+      prevCountRef.current = cartCount;
+      return;
+    }
+    if (cartCount > prevCountRef.current) {
+      badge.classList.remove('cart-badge--pop');
+      void badge.offsetWidth;
+      badge.classList.add('cart-badge--pop');
+    }
+    prevCountRef.current = cartCount;
+  }, [cartCount]);
 
   const toggleMenu = () => setIsOpen(!isOpen);
+
+  useEffect(() => {
+    const linksEl = linksRef.current;
+    if (!linksEl) return;
+    const activeLink = linksEl.querySelector('.navbar__link.active');
+    const indicator = linksEl.querySelector('.navbar__indicator');
+    if (!activeLink || !indicator) return;
+
+    const rect = activeLink.getBoundingClientRect();
+    const parentRect = linksEl.getBoundingClientRect();
+    const left = rect.left - parentRect.left;
+    indicator.style.width = `${rect.width}px`;
+    indicator.style.transform = `translateX(${left}px)`;
+  }, [location.pathname]);
 
   const navLinks = [
     { name: 'Inicio', path: '/' },
@@ -29,7 +59,7 @@ const Navbar = () => {
         </Link>
 
         {/* Desktop Menu */}
-        <div className="navbar__links desktop-only">
+        <div className="navbar__links desktop-only" ref={linksRef}>
           {navLinks.map((link) => (
             <Link 
               key={link.name} 
@@ -39,9 +69,15 @@ const Navbar = () => {
               {link.name}
             </Link>
           ))}
-          <button className="btn btn--primary navbar__cart-btn" onClick={toggleCart}>
+          <span className="navbar__indicator" />
+          <button className="btn btn--primary navbar__cart-btn" onClick={toggleCart} data-magnetic="true" data-magnetic-strength="0.12">
             <ShoppingCart size={20} />
-            <span>Carrito {cartCount > 0 && `(${cartCount})`}</span>
+            <span>Carrito</span>
+            {cartCount > 0 && (
+              <span className="cart-badge" aria-live="polite">
+                {cartCount}
+              </span>
+            )}
           </button>
 
           {user ? (

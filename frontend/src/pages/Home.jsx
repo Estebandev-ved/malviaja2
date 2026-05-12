@@ -6,7 +6,7 @@ const Home = () => {
   return (
     <div className="home">
       {/* Hero Section */}
-      <section className="hero">
+      <section className="hero" data-reveal>
         <div className="container hero__container">
           <div className="hero__content">
             <div className="slogan-badge" style={{ 
@@ -29,32 +29,37 @@ const Home = () => {
               <Sparkles size={16} color="var(--color-secondary)" />
               <span>NO vendemos drogas, vendemos <span style={{color: 'var(--color-secondary)', fontWeight: '800'}}>postres</span></span>
             </div>
-            <h1 className="hero__title">
+            <h1
+              className="hero__title"
+              data-typewriter-prefix="Siente el "
+              data-typewriter-highlight="Viaje"
+              data-typewriter-suffix=". Disfruta el Sabor."
+            >
               Siente el <span className="text-secondary">Viaje</span>. Disfruta el Sabor.
             </h1>
             <p className="hero__subtitle">
               Brownies cannábicos premium hechos con los mejores ingredientes y la dosis perfecta para una experiencia inigualable, totalmente controlada y segura.
             </p>
-            <div className="hero__actions">
-              <Link to="/login" className="btn btn--primary hero__btn hero__btn--pulse">
+            <div className="hero__actions" data-reveal>
+              <Link to="/login" className="btn btn--primary hero__btn hero__btn--pulse" data-magnetic="true" data-magnetic-strength="0.2">
                 <ShieldCheck size={24} /> Solicitar Acceso al Club
               </Link>
               <div className="hero__secondary-actions">
                 <Link to="/comestibles" className="btn btn--secondary hero__btn" style={{ flex: 1 }}>
                   Catálogo Clásico
                 </Link>
-                <Link to="/quienes-somos" className="btn btn--primary hero__btn hero__btn--outline">
+                <Link to="/quienes-somos" className="btn btn--primary hero__btn hero__btn--outline" data-magnetic="true" data-magnetic-strength="0.14">
                   Conócenos
                 </Link>
               </div>
             </div>
           </div>
-          <div className="hero__image-wrapper">
-            <img 
-              src="/mascota-nobg.png" 
-              alt="Mascota Brownie Malviaja2" 
-              className="hero__image bounce-animation"
-            />
+            <div className="hero__image-wrapper" data-reveal>
+              <img 
+                src="/mascota-nobg.png" 
+                alt="Mascota Brownie Malviaja2" 
+                className="hero__image bounce-animation"
+              />
             <div className="hero__blob"></div>
           </div>
         </div>
@@ -87,7 +92,7 @@ const Home = () => {
           </p>
 
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '2rem', textAlign: 'left', marginBottom: '3.5rem' }}>
-            <div style={{ background: 'rgba(255,255,255,0.03)', padding: '2rem', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.08)', backdropFilter: 'blur(10px)', transition: 'transform 0.3s ease', cursor: 'default' }} onMouseOver={(e) => e.currentTarget.style.transform = 'translateY(-5px)'} onMouseOut={(e) => e.currentTarget.style.transform = 'translateY(0)'}>
+            <div data-reveal style={{ background: 'rgba(255,255,255,0.03)', padding: '2rem', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.08)', backdropFilter: 'blur(10px)', transition: 'transform 0.3s ease', cursor: 'default' }} onMouseOver={(e) => e.currentTarget.style.transform = 'translateY(-5px)'} onMouseOut={(e) => e.currentTarget.style.transform = 'translateY(0)'}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1rem' }}>
                 <Percent size={24} color="var(--color-secondary)" />
                 <h4 style={{ color: '#fff', fontSize: '1.2rem', fontWeight: '700', margin: 0 }}>Beneficio de Ingreso</h4>
@@ -95,7 +100,7 @@ const Home = () => {
               <p style={{ fontSize: '0.95rem', color: '#999', lineHeight: '1.6' }}>Obtén un 20% de descuento automático en tu primera orden como bienvenida al club.</p>
             </div>
             
-            <div style={{ background: 'rgba(255,255,255,0.03)', padding: '2rem', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.08)', backdropFilter: 'blur(10px)', transition: 'transform 0.3s ease', cursor: 'default' }} onMouseOver={(e) => e.currentTarget.style.transform = 'translateY(-5px)'} onMouseOut={(e) => e.currentTarget.style.transform = 'translateY(0)'}>
+            <div data-reveal style={{ background: 'rgba(255,255,255,0.03)', padding: '2rem', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.08)', backdropFilter: 'blur(10px)', transition: 'transform 0.3s ease', cursor: 'default' }} onMouseOver={(e) => e.currentTarget.style.transform = 'translateY(-5px)'} onMouseOut={(e) => e.currentTarget.style.transform = 'translateY(0)'}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1rem' }}>
                 <Timer size={24} color="#ff5252" />
                 <h4 style={{ color: '#fff', fontSize: '1.2rem', fontWeight: '700', margin: 0 }}>Mantenimiento de Cupo</h4>
@@ -104,7 +109,7 @@ const Home = () => {
             </div>
           </div>
           
-          <Link to="/login" className="btn btn--secondary" style={{ padding: '1.2rem 3rem', fontSize: '1.1rem', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '1px', boxShadow: '0 10px 25px rgba(255,215,0,0.2)', borderRadius: '50px' }}>
+          <Link to="/login" className="btn btn--secondary" data-magnetic="true" data-magnetic-strength="0.18" style={{ padding: '1.2rem 3rem', fontSize: '1.1rem', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '1px', boxShadow: '0 10px 25px rgba(255,215,0,0.2)', borderRadius: '50px' }}>
             Verificar Disponibilidad
           </Link>
         </div>
@@ -122,17 +127,17 @@ const Home = () => {
             </p>
             
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '2rem', textAlign: 'left' }}>
-              <div style={{ padding: '1.5rem', background: 'var(--color-background)', borderRadius: 'var(--radius-md)' }}>
+            <div data-reveal style={{ padding: '1.5rem', background: 'var(--color-background)', borderRadius: 'var(--radius-md)' }}>
                 <div style={{ color: 'var(--color-primary)', marginBottom: '1rem' }}><Zap size={32} /></div>
                 <h3 className="font-bold text-primary-dark" style={{ marginBottom: '0.5rem' }}>Alta Eficiencia</h3>
                 <p style={{ fontSize: '0.9rem', color: 'var(--color-text-light)' }}>Absorción óptima. Siente los primeros efectos entre 45 a 60 minutos con una duración estable y prolongada.</p>
               </div>
-              <div style={{ padding: '1.5rem', background: 'var(--color-background)', borderRadius: 'var(--radius-md)' }}>
+            <div data-reveal style={{ padding: '1.5rem', background: 'var(--color-background)', borderRadius: 'var(--radius-md)' }}>
                 <div style={{ color: 'var(--color-secondary)', marginBottom: '1rem' }}><Clock size={32} /></div>
                 <h3 className="font-bold text-primary-dark" style={{ marginBottom: '0.5rem' }}>Dosis Precisa</h3>
                 <p style={{ fontSize: '0.9rem', color: 'var(--color-text-light)' }}>Cada porción contiene la cantidad exacta de miligramos para que controles tu experiencia al 100%.</p>
               </div>
-              <div style={{ padding: '1.5rem', background: 'var(--color-background)', borderRadius: 'var(--radius-md)' }}>
+            <div data-reveal style={{ padding: '1.5rem', background: 'var(--color-background)', borderRadius: 'var(--radius-md)' }}>
                 <div style={{ color: 'var(--color-primary-light)', marginBottom: '1rem' }}><ShieldCheck size={32} /></div>
                 <h3 className="font-bold text-primary-dark" style={{ marginBottom: '0.5rem' }}>Discreción Total</h3>
                 <p style={{ fontSize: '0.9rem', color: 'var(--color-text-light)' }}>Disfruta donde quieras. Sin humo, sin olores delatores y con el aspecto de un postre gourmet.</p>
@@ -147,7 +152,7 @@ const Home = () => {
         <div className="container">
           <h2 className="section-title text-center" style={{ marginBottom: '3rem' }}>¿Por qué elegir Malviaja2?</h2>
           <div className="features__grid">
-            <div className="feature-card glass" style={{ textAlign: 'center', padding: '2rem' }}>
+            <div className="feature-card glass" data-reveal style={{ textAlign: 'center', padding: '2rem' }}>
               <div style={{ background: 'var(--color-primary-light)', color: 'white', width: '64px', height: '64px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1.5rem' }}>
                 <Star size={32} />
               </div>
@@ -156,7 +161,7 @@ const Home = () => {
                 Nuestra receta artesanal utiliza exclusivamente chocolate belga al 70% cacao y mantequilla infundida de la más alta pureza para una textura perfecta.
               </p>
             </div>
-            <div className="feature-card glass" style={{ textAlign: 'center', padding: '2rem' }}>
+            <div className="feature-card glass" data-reveal style={{ textAlign: 'center', padding: '2rem' }}>
               <div style={{ background: '#fff59d', color: 'var(--color-secondary)', width: '64px', height: '64px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1.5rem' }}>
                 <Target size={32} />
               </div>
@@ -165,7 +170,7 @@ const Home = () => {
                 Olvídate de las malas experiencias. Cada brownie pasa por un control estricto para garantizar que la dosis sea idéntica, predecible y segura en cada bocado.
               </p>
             </div>
-            <div className="feature-card glass" style={{ textAlign: 'center', padding: '2rem' }}>
+            <div className="feature-card glass" data-reveal style={{ textAlign: 'center', padding: '2rem' }}>
               <div style={{ background: '#efebe9', color: 'var(--color-primary-dark)', width: '64px', height: '64px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1.5rem' }}>
                 <Sparkles size={32} />
               </div>

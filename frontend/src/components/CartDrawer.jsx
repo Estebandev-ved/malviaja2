@@ -31,7 +31,7 @@ const CartDrawer = () => {
 
   return (
     <div className="cart-overlay" onClick={toggleCart}>
-      <div className="cart-drawer glass" onClick={(e) => e.stopPropagation()}>
+        <div className="cart-drawer glass" onClick={(e) => e.stopPropagation()} data-reveal>
         <div className="cart-header">
           <h2>Tu Viaje (Carrito)</h2>
           <button className="cart-close" onClick={toggleCart}><X size={24} /></button>
@@ -66,7 +66,7 @@ const CartDrawer = () => {
               <span>Total Estimado:</span>
               <span className="font-bold text-primary">${total.toLocaleString()}</span>
             </div>
-            <button className="btn btn--secondary w-full" onClick={handleCheckout}>
+            <button className="btn btn--secondary w-full" data-magnetic="true" data-magnetic-strength="0.12" onClick={handleCheckout}>
               Proceder al Pago
             </button>
           </div>

@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { Sparkles } from 'lucide-react';
 import useStore from '../store/useStore';
 
 const Comestibles = () => {
@@ -16,22 +17,30 @@ const Comestibles = () => {
 
   return (
     <div className="container py-16">
-      <h1 className="section-title text-center">Nuestro Catálogo</h1>
-      <p className="text-center text-primary" style={{ marginBottom: '3rem', maxWidth: '600px', margin: '0 auto 3rem' }}>
+      <h1 className="section-title text-center" data-reveal>Nuestro Catálogo</h1>
+      <p className="text-center text-primary" data-reveal style={{ marginBottom: '3rem', maxWidth: '600px', margin: '0 auto 3rem' }}>
         Selecciona tu compañero de viaje. Recuerda consumir con responsabilidad y esperar al menos 45 minutos para sentir los efectos.
       </p>
 
       {loading ? (
-        <div style={{ textAlign: 'center', padding: '2rem', fontSize: '1.5rem', color: 'var(--color-primary)' }}>
-          Cargando los mejores brownies...
+        <div className="catalog-grid">
+          {Array.from({ length: 6 }).map((_, index) => (
+            <div key={index} className="skeleton-card" aria-hidden="true">
+              <div className="skeleton-block skeleton-image" />
+              <div className="skeleton-block skeleton-title" />
+              <div className="skeleton-block skeleton-line" />
+              <div className="skeleton-block skeleton-line short" />
+              <div className="skeleton-block skeleton-button" />
+            </div>
+          ))}
         </div>
       ) : (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '2rem' }}>
+        <div className="catalog-grid" data-stagger="true" data-reveal>
           {/* Tarjeta del Brownie Personalizado */}
-          <div className="feature-card glass" style={{ textAlign: 'left', border: '2px solid var(--color-secondary)', position: 'relative', overflow: 'hidden' }}>
+          <div className="feature-card glass" data-reveal style={{ textAlign: 'left', border: '2px solid var(--color-secondary)', position: 'relative', overflow: 'hidden' }}>
             <div style={{ position: 'absolute', top: 0, right: 0, background: 'var(--color-secondary)', color: 'var(--color-primary-dark)', padding: '0.25rem 1rem', fontWeight: 'bold', fontSize: '0.8rem', borderBottomLeftRadius: '8px' }}>NUEVO</div>
             <div style={{ height: '200px', background: 'linear-gradient(135deg, var(--color-primary-dark), var(--color-primary))', borderRadius: 'var(--radius-md)', marginBottom: '1rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <span style={{ fontSize: '5rem', filter: 'drop-shadow(0 4px 8px rgba(0,0,0,0.3))' }}>✨</span>
+              <Sparkles size={72} color="var(--color-secondary)" style={{ filter: 'drop-shadow(0 4px 8px rgba(0,0,0,0.3))' }} />
             </div>
             <h3 className="text-primary font-bold" style={{ fontSize: '1.5rem', marginBottom: '0.5rem' }}>A tu Medida</h3>
             <p style={{ color: 'var(--color-text-light)', marginBottom: '1rem' }}>Responde un breve test y crearemos la dosis y receta perfecta para tu nivel de experiencia.</p>
@@ -45,7 +54,7 @@ const Comestibles = () => {
           </div>
 
           {productos.map(prod => (
-            <div key={prod.id} className="feature-card glass" style={{ textAlign: 'left' }}>
+            <div key={prod.id} className="feature-card glass" data-reveal style={{ textAlign: 'left' }}>
               <div style={{ height: '200px', background: 'var(--color-primary-light)', borderRadius: 'var(--radius-md)', marginBottom: '1rem', backgroundImage: prod.imageUrl ? `url(${prod.imageUrl})` : 'none', backgroundSize: 'cover', backgroundPosition: 'center' }}></div>
               <h3 className="text-primary font-bold" style={{ fontSize: '1.5rem', marginBottom: '0.5rem' }}>{prod.nombre}</h3>
               <p style={{ color: 'var(--color-text-light)', marginBottom: '1rem' }}>{prod.descripcion}</p>
@@ -55,7 +64,7 @@ const Comestibles = () => {
                   Dosis: {prod.dosis}
                 </span>
               </div>
-              <button className="btn btn--primary w-full" onClick={() => handleAdd(prod)}>
+              <button className="btn btn--primary w-full" data-magnetic="true" data-magnetic-strength="0.12" onClick={() => handleAdd(prod)}>
                 Añadir al Carrito
               </button>
             </div>
