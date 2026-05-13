@@ -13,6 +13,7 @@ import Checkout from './pages/Checkout';
 import Login from './pages/Login';
 import Quiz from './pages/Quiz';
 import Perfil from './pages/Perfil';
+import SeguimientoPedido from './pages/SeguimientoPedido';
 /* Admin Components */
 import AdminLayout from './components/AdminLayout';
 import Dashboard from './pages/admin/Dashboard';
@@ -26,6 +27,8 @@ import Mensajes from './pages/admin/Mensajes';
 import Actividad from './pages/admin/Actividad';
 import MapaEntregas from './pages/admin/MapaEntregas';
 import AceptarPedidos from './pages/admin/AceptarPedidos';
+import WebhookSimulator from './pages/admin/WebhookSimulator';
+import NoticiasAdmin from './pages/admin/Noticias';
 import CustomCursor from './components/CustomCursor';
 
 function App() {
@@ -44,6 +47,7 @@ function App() {
           <Route path="login" element={<Login />} />
           <Route path="quiz" element={<Quiz />} />
           <Route path="perfil" element={<Perfil />} />
+          <Route path="pedido/:ref" element={<SeguimientoPedido />} />
         </Route>
 
         {/* Admin Routes */}
@@ -59,6 +63,8 @@ function App() {
           <Route path="actividad" element={<Actividad />} />
           <Route path="mapa" element={<MapaEntregas />} />
           <Route path="aceptar-pedidos" element={<AceptarPedidos />} />
+          <Route path="webhook" element={<WebhookSimulator />} />
+          <Route path="noticias" element={<NoticiasAdmin />} />
         </Route>
       </Routes>
     </Router>

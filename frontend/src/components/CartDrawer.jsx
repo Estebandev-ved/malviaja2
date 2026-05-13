@@ -1,7 +1,13 @@
 import useStore from '../store/useStore';
 import { X, Trash2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import useCountUp from '../utils/useCountUp';
 import './CartDrawer.css';
+
+const AnimatedTotal = ({ value }) => {
+  const count = useCountUp(value, 500, value > 0);
+  return <>{count.toLocaleString()}</>;
+};
 
 const CartDrawer = () => {
   const { isCartOpen, toggleCart, carrito, removeFromCart, user, cuponesActivos } = useStore();
@@ -64,7 +70,7 @@ const CartDrawer = () => {
             )}
             <div className="cart-total">
               <span>Total Estimado:</span>
-              <span className="font-bold text-primary">${total.toLocaleString()}</span>
+              <span className="font-bold text-primary">$<AnimatedTotal value={total} /></span>
             </div>
             <button className="btn btn--secondary w-full" data-magnetic="true" data-magnetic-strength="0.12" onClick={handleCheckout}>
               Proceder al Pago

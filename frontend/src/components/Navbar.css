@@ -143,4 +143,19 @@
 @media (max-width: 768px) {
   .desktop-only { display: none; }
   .mobile-only { display: block; }
+
+  .navbar { height: 60px; }
+  .navbar__logo-img { height: 42px; }
+  .navbar__logo-text { font-size: 1rem; }
+  .navbar__mobile-menu { top: 60px; padding: 1rem; gap: 1rem; }
+  .navbar__mobile-link { font-size: 1.1rem; }
+
+  .navbar__mobile-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid rgba(0,0,0,0.08);
+  }
 }

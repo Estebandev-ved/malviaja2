@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Package, ChefHat, Truck, CheckCircle, XCircle } from 'lucide-react';
+import { Package, ChefHat, Truck, CheckCircle, XCircle, Clock } from 'lucide-react';
 import useStore from '../store/useStore';
 import { authFetch } from '../api';
 import './MisPedidos.css';
@@ -32,6 +32,8 @@ const MisPedidos = ({ isEmbedded = false }) => {
   const getStatusIcon = (estado) => {
     switch (estado) {
       case 'PENDIENTE': return <Package size={24} color="var(--color-primary)" />;
+      case 'PAGADO': return <CheckCircle size={24} color="#1b5e20" />;
+      case 'REVISION_MANUAL': return <Clock size={24} color="#6a1b9a" />;
       case 'PREPARANDO': return <ChefHat size={24} color="#f9a825" />;
       case 'EN_CAMINO': return <Truck size={24} color="#f57c00" />;
       case 'ENTREGADO': return <CheckCircle size={24} color="#388e3c" />;
@@ -43,6 +45,8 @@ const MisPedidos = ({ isEmbedded = false }) => {
   const getStatusText = (estado) => {
     switch (estado) {
       case 'PENDIENTE': return "Orden Recibida";
+      case 'PAGADO': return "Pago verificado";
+      case 'REVISION_MANUAL': return "Revisión manual";
       case 'PREPARANDO': return "Preparando tu viaje";
       case 'EN_CAMINO': return "En Repartición";
       case 'ENTREGADO': return "Entregado";
@@ -52,7 +56,7 @@ const MisPedidos = ({ isEmbedded = false }) => {
   };
 
   const renderTimeline = (estado) => {
-    const states = ['PENDIENTE', 'PREPARANDO', 'EN_CAMINO', 'ENTREGADO'];
+    const states = ['PENDIENTE', 'PAGADO', 'REVISION_MANUAL', 'PREPARANDO', 'EN_CAMINO', 'ENTREGADO'];
     const currentIndex = states.indexOf(estado);
     
     if (estado === 'CANCELADO') {

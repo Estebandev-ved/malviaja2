@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
-import { MapPin, RefreshCw, Navigation, Package, Truck, Clock } from 'lucide-react';
+import { MapPin, RefreshCw, Navigation, Package, Truck, Clock, CheckCircle2 } from 'lucide-react';
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { authFetch } from '../../api';
+import useCountUp from '../../utils/useCountUp';
 
 // Fix leaflet marker icons in Vite
 delete L.Icon.Default.prototype._getIconUrl;
@@ -16,6 +17,8 @@ L.Icon.Default.mergeOptions({
 // Colores por estado
 const ESTADO_COLOR = {
   PENDIENTE: '#ff9800',
+  PAGADO: '#1b5e20',
+  REVISION_MANUAL: '#6a1b9a',
   ACEPTADO: '#2196f3',
   PREPARANDO: '#f57f17',
   EN_CAMINO: '#4caf50',
@@ -25,6 +28,8 @@ const ESTADO_COLOR = {
 
 const ESTADO_ICON = {
   PENDIENTE: '🕐',
+  PAGADO: '✅',
+  REVISION_MANUAL: '🧐',
   ACEPTADO: '✅',
   PREPARANDO: '🍳',
   EN_CAMINO: '🚴',
@@ -32,8 +37,8 @@ const ESTADO_ICON = {
   CANCELADO: '❌',
 };
 
-// Crea icono de marcador con color
-const crearIcono = (color) =>
+// Crea icono de marcador con color y animación de caída
+const crearIcono = (color, index = 0) =>
   L.divIcon({
     className: '',
     html: `<div style="
@@ -43,6 +48,7 @@ const crearIcono = (color) =>
       border-radius: 50% 50% 50% 0;
       transform: rotate(-45deg);
       box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+      animation: marker-drop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) ${(index || 0) * 0.07}s both;
     "></div>`,
     iconSize: [28, 28],
     iconAnchor: [14, 28],
@@ -94,6 +100,20 @@ const FitBounds = ({ markers }) => {
   return null;
 };
 
+const KpiMarkerCard = ({ k, contador, filtroEstado, onClick }) => {
+  const count = useCountUp(contador || 0, 800, true);
+
+  return (
+    <div style={{ background: 'white', padding: '1rem', borderRadius: 'var(--radius-lg)', boxShadow: 'var(--shadow-sm)', border: '1px solid rgba(0,0,0,0.05)', display: 'flex', alignItems: 'center', gap: '0.75rem', cursor: 'pointer', outline: filtroEstado === k.estado ? `2px solid ${ESTADO_COLOR[k.estado]}` : 'none' }} onClick={onClick}>
+      <div style={{ color: ESTADO_COLOR[k.estado], background: `${ESTADO_COLOR[k.estado]}18`, padding: '0.5rem', borderRadius: 'var(--radius-md)' }}>{k.icon}</div>
+      <div>
+        <p style={{ fontSize: '0.75rem', color: 'var(--color-text-light)', margin: 0 }}>{k.label}</p>
+        <span style={{ fontWeight: 'bold', fontSize: '1.3rem', color: 'var(--color-primary-dark)' }}>{count.toLocaleString()}</span>
+      </div>
+    </div>
+  );
+};
+
 const MapaEntregas = () => {
   const [pedidos, setPedidos] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -115,7 +135,7 @@ const MapaEntregas = () => {
 
   useEffect(() => { fetchData(); }, []);
 
-  const estadosActivos = ['PENDIENTE', 'ACEPTADO', 'PREPARANDO', 'EN_CAMINO'];
+  const estadosActivos = ['PENDIENTE', 'PAGADO', 'REVISION_MANUAL', 'ACEPTADO', 'PREPARANDO', 'EN_CAMINO'];
 
   const pedidosFiltrados = pedidos.filter(p =>
     filtroEstado === 'TODOS'
@@ -147,17 +167,13 @@ const MapaEntregas = () => {
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '1rem', marginBottom: '1.5rem' }}>
         {[
           { estado: 'PENDIENTE', label: 'Pendientes', icon: <Clock size={18} /> },
+          { estado: 'PAGADO', label: 'Pagados', icon: <CheckCircle2 size={18} /> },
+          { estado: 'REVISION_MANUAL', label: 'Revisión', icon: <Clock size={18} /> },
           { estado: 'EN_CAMINO', label: 'En Camino', icon: <Truck size={18} /> },
           { estado: 'PREPARANDO', label: 'Preparando', icon: <Package size={18} /> },
           { estado: 'ENTREGADO', label: 'Entregados', icon: <Navigation size={18} /> },
         ].map(k => (
-          <div key={k.estado} style={{ background: 'white', padding: '1rem', borderRadius: 'var(--radius-lg)', boxShadow: 'var(--shadow-sm)', border: '1px solid rgba(0,0,0,0.05)', display: 'flex', alignItems: 'center', gap: '0.75rem', cursor: 'pointer', outline: filtroEstado === k.estado ? `2px solid ${ESTADO_COLOR[k.estado]}` : 'none' }} onClick={() => setFiltroEstado(filtroEstado === k.estado ? 'ACTIVOS' : k.estado)}>
-            <div style={{ color: ESTADO_COLOR[k.estado], background: `${ESTADO_COLOR[k.estado]}18`, padding: '0.5rem', borderRadius: 'var(--radius-md)' }}>{k.icon}</div>
-            <div>
-              <p style={{ fontSize: '0.75rem', color: 'var(--color-text-light)', margin: 0 }}>{k.label}</p>
-              <span style={{ fontWeight: 'bold', fontSize: '1.3rem', color: 'var(--color-primary-dark)' }}>{contadores[k.estado] || 0}</span>
-            </div>
-          </div>
+          <KpiMarkerCard key={k.estado} k={k} contador={contadores[k.estado] || 0} filtroEstado={filtroEstado} onClick={() => setFiltroEstado(filtroEstado === k.estado ? 'ACTIVOS' : k.estado)} />
         ))}
       </div>
 
@@ -190,11 +206,11 @@ const MapaEntregas = () => {
             </Marker>
 
             {/* Pedidos */}
-            {markersConCoords.map(p => (
+            {markersConCoords.map((p, idx) => (
               <Marker
                 key={p.id}
                 position={p.coords}
-                icon={crearIcono(ESTADO_COLOR[p.estado] || '#9e9e9e')}
+                icon={crearIcono(ESTADO_COLOR[p.estado] || '#9e9e9e', idx)}
                 eventHandlers={{ click: () => setSeleccionado(p.id) }}
               >
                 <Popup>

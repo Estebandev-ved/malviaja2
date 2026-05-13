@@ -1,12 +1,14 @@
 import { Outlet, Link, useLocation, useNavigate, Navigate } from 'react-router-dom';
-import { LayoutDashboard, ShoppingBag, Users, Settings, LogOut, ShieldAlert, Loader2, TrendingUp, Tag, Package, MessageSquare, Activity, Map, ClipboardCheck } from 'lucide-react';
+import { LayoutDashboard, ShoppingBag, Users, Settings, LogOut, ShieldAlert, Loader2, TrendingUp, Tag, Package, MessageSquare, Activity, Map, ClipboardCheck, Menu, X } from 'lucide-react';
 import useStore from '../store/useStore';
+import { useState } from 'react';
 import './AdminLayout.css';
 
 const AdminLayout = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { user, authLoading, logout } = useStore();
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   // LISTA BLANCA DE ADMINS (UIDs Autorizados)
   const ADMIN_UIDS = ['QHjKOXbmDidS1IyyWBJwrH70YSZ2'];
@@ -44,13 +46,18 @@ const AdminLayout = () => {
     { name: 'Actividad', path: '/admin/actividad', icon: <Activity size={20} /> },
     { name: 'Mapa Entregas', path: '/admin/mapa', icon: <Map size={20} /> },
     { name: 'Aceptar Pedidos', path: '/admin/aceptar-pedidos', icon: <ClipboardCheck size={20} /> },
+    { name: 'Noticias', path: '/admin/noticias', icon: <MessageSquare size={20} /> },
+    { name: 'Webhook Nequi', path: '/admin/webhook', icon: <Activity size={20} /> },
     { name: 'Configuración', path: '/admin/config', icon: <Settings size={20} /> },
   ];
 
   return (
     <div className="admin-layout">
+      {/* Mobile overlay */}
+      {sidebarOpen && <div className="admin-overlay" onClick={() => setSidebarOpen(false)} />}
+
       {/* Sidebar */}
-      <aside className="admin-sidebar">
+      <aside className={`admin-sidebar ${sidebarOpen ? 'admin-sidebar--open' : ''}`}>
         <div className="admin-sidebar__header">
           <img src="/mascota.png" alt="Logo" className="admin-logo" />
           <h2>Admin Panel</h2>
@@ -80,8 +87,13 @@ const AdminLayout = () => {
       {/* Main Content Area */}
       <main className="admin-main">
         <header className="admin-header">
-          <div className="admin-header__search">
-            <input type="text" placeholder="Buscar pedidos, clientes..." className="admin-search-input" />
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+            <button className="admin-menu-toggle" onClick={() => setSidebarOpen(true)}>
+              <Menu size={22} />
+            </button>
+            <div className="admin-header__search">
+              <input type="text" placeholder="Buscar pedidos, clientes..." className="admin-search-input" />
+            </div>
           </div>
           <div className="admin-header__profile">
             {user.photoURL ? (

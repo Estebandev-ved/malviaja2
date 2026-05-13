@@ -1,0 +1,45 @@
+@media (max-width: 768px) {
+  .seguimiento-header h1 {
+    font-size: 1.4rem !important;
+  }
+
+  .seguimiento-header .StatusIcon {
+    width: 48px !important;
+    height: 48px !important;
+  }
+
+  .seguimiento-timeline-step {
+    gap: 0.25rem !important;
+  }
+
+  .seguimiento-timeline-step .step-icon {
+    width: 36px !important;
+    height: 36px !important;
+  }
+
+  .seguimiento-timeline-step .step-icon svg {
+    width: 16px !important;
+    height: 16px !important;
+  }
+
+  .seguimiento-timeline-step .step-label {
+    font-size: 0.6rem !important;
+    max-width: 60px !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .seguimiento-timeline-step .step-icon {
+    width: 28px !important;
+    height: 28px !important;
+  }
+
+  .seguimiento-timeline-step .step-label {
+    font-size: 0.5rem !important;
+    max-width: 50px !important;
+  }
+
+  .seguimiento-header h1 {
+    font-size: 1.2rem !important;
+  }
+}

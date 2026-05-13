@@ -70,7 +70,7 @@ const Navbar = () => {
             </Link>
           ))}
           <span className="navbar__indicator" />
-          <button className="btn btn--primary navbar__cart-btn" onClick={toggleCart} data-magnetic="true" data-magnetic-strength="0.12">
+          <button id="cart-fly-target" className="btn btn--primary navbar__cart-btn" onClick={toggleCart} data-magnetic="true" data-magnetic-strength="0.12">
             <ShoppingCart size={20} />
             <span>Carrito</span>
             {cartCount > 0 && (
@@ -123,16 +123,29 @@ const Navbar = () => {
               {link.name}
             </Link>
           ))}
-          {user && (user.rol === 'ADMIN' || user.uid === 'QHjKOXbmDidS1IyyWBJwrH70YSZ2') && (
-            <Link 
-              to="/admin"
-              className="navbar__mobile-link"
-              style={{ color: 'var(--color-primary-dark)', background: 'var(--color-secondary)' }}
-              onClick={() => setIsOpen(false)}
-            >
-              Panel Admin
-            </Link>
-          )}
+
+          <div className="navbar__mobile-actions">
+            <button className="btn btn--primary w-full" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }} onClick={() => { toggleCart(); setIsOpen(false); }}>
+              <ShoppingCart size={18} /> Carrito {cartCount > 0 && `(${cartCount})`}
+            </button>
+
+            {user ? (
+              <div style={{ display: 'flex', gap: '0.5rem' }}>
+                <button className="btn w-full" style={{ border: '1px solid #ddd', flex: 1 }} onClick={() => { navigate('/perfil'); setIsOpen(false); }}>
+                  Mi Perfil
+                </button>
+                {(user.rol === 'ADMIN' || user.uid === 'QHjKOXbmDidS1IyyWBJwrH70YSZ2') && (
+                  <button className="btn btn--secondary w-full" style={{ flex: 1 }} onClick={() => { navigate('/admin'); setIsOpen(false); }}>
+                    Admin
+                  </button>
+                )}
+              </div>
+            ) : (
+              <button className="btn btn--primary w-full" onClick={() => { navigate('/login'); setIsOpen(false); }}>
+                Ingresar
+              </button>
+            )}
+          </div>
         </div>
       )}
     </nav>

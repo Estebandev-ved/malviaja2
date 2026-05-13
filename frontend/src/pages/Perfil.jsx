@@ -4,7 +4,13 @@ import { authFetch } from '../api';
 import { User, LogOut, Package, MapPin, Phone, Award, Star, BookOpen, Gift, Send, Ticket, Crown, CheckCircle2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import MisPedidos from './MisPedidos';
+import useCountUp from '../utils/useCountUp';
 import './Perfil.css';
+
+const AnimatedNumber = ({ value }) => {
+  const count = useCountUp(value, 800, true);
+  return <>{count.toLocaleString()}</>;
+};
 
 const Perfil = () => {
   const { user, logout, puntosTotales, cuponesActivos, addPuntos, restarPuntos, addCupon } = useStore();
@@ -192,7 +198,7 @@ const Perfil = () => {
                   <span className="points-label">Puntos de Vuelo Disponibles</span>
                   <div className="points-value">
                     <Star size={36} fill="var(--color-secondary)" color="var(--color-secondary)" /> 
-                    {puntosTotales.toLocaleString()}
+                    <AnimatedNumber value={puntosTotales} />
                   </div>
                 </div>
                 
@@ -245,7 +251,7 @@ const Perfil = () => {
               )}
 
               {/* CATÁLOGO DE RECOMPENSAS */}
-              <h2 className="section-title text-primary-dark" style={{ marginTop: '3rem', marginBottom: '1.5rem', fontSize: '1.8rem' }}>Catálogo de Recompensas</h2>
+              <h2 className="section-title text-primary-dark" style={{ marginTop: '3rem', marginBottom: '1.5rem', fontSize: 'clamp(1.3rem, 5vw, 1.8rem)' }}>Catálogo de Recompensas</h2>
               <p style={{ color: 'var(--color-text-light)', marginBottom: '2rem' }}>Canjea tus Puntos de Vuelo por estos beneficios exclusivos.</p>
               
               <div className="rewards-grid">
@@ -269,14 +275,14 @@ const Perfil = () => {
               </div>
 
               {/* PROGRAMA DE REFERIDOS */}
-              <div style={{ marginTop: '4rem', padding: '2.5rem', background: 'var(--color-primary-dark)', borderRadius: 'var(--radius-lg)', color: 'white', display: 'flex', flexWrap: 'wrap', gap: '2rem', alignItems: 'center' }}>
+              <div className="referidos-section" style={{ marginTop: '4rem', padding: '2.5rem', background: 'var(--color-primary-dark)', borderRadius: 'var(--radius-lg)', color: 'white', display: 'flex', flexWrap: 'wrap', gap: '2rem', alignItems: 'center' }}>
                 <div style={{ flex: '1 1 300px' }}>
-                  <h2 style={{ fontSize: '1.8rem', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}><User size={28} className="text-secondary" /> Invita a un Viajero</h2>
+                  <h2 style={{ fontSize: 'clamp(1.3rem, 4vw, 1.8rem)', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}><User size={28} className="text-secondary" /> Invita a un Viajero</h2>
                   <p style={{ opacity: 0.9, marginBottom: '1.5rem', lineHeight: '1.5' }}>Gana <strong>2,000 Puntos de Vuelo</strong> automáticos cada vez que un amigo haga su primera compra usando tu enlace personal.</p>
                 </div>
-                <div style={{ flex: '1 1 300px', background: 'rgba(0,0,0,0.2)', padding: '1.5rem', borderRadius: 'var(--radius-md)', textAlign: 'center' }}>
+                <div className="referidos-link-box" style={{ flex: '1 1 300px', background: 'rgba(0,0,0,0.2)', padding: '1.5rem', borderRadius: 'var(--radius-md)', textAlign: 'center' }}>
                   <div style={{ fontSize: '0.9rem', opacity: 0.8, marginBottom: '0.5rem' }}>Tu enlace único de invitación:</div>
-                  <div style={{ padding: '1rem', background: 'white', color: 'var(--color-primary-dark)', borderRadius: 'var(--radius-sm)', fontWeight: 'bold', fontFamily: 'monospace', marginBottom: '1rem' }}>
+                  <div style={{ padding: '1rem', background: 'white', color: 'var(--color-primary-dark)', borderRadius: 'var(--radius-sm)', fontWeight: 'bold', fontFamily: 'monospace', marginBottom: '1rem', fontSize: 'clamp(0.75rem, 2.5vw, 1rem)', wordBreak: 'break-all' }}>
                     malviaja2.com/ref/{user.uid?.slice(0, 8) || 'user'}
                   </div>
                   <button className="btn btn--secondary w-full" onClick={() => {
@@ -308,7 +314,7 @@ const Perfil = () => {
 
               <form onSubmit={agregarNotaDiario} className="diary-form glass-dark">
                 <h3 className="text-surface font-bold" style={{ marginBottom: '1rem' }}>Nueva Anotación</h3>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
+                <div className="diary-form-grid">
                   <input type="text" placeholder="Producto (Ej. Brownie clásico)" className="checkout-input" value={nuevaNota.producto} onChange={e => setNuevaNota({...nuevaNota, producto: e.target.value})} required />
                   <input type="text" placeholder="Dosis consumida (Ej. 30mg)" className="checkout-input" value={nuevaNota.dosis} onChange={e => setNuevaNota({...nuevaNota, dosis: e.target.value})} required />
                 </div>

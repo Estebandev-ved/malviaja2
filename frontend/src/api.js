@@ -20,7 +20,11 @@ async function getAuthenticatedUser() {
  */
 export async function authFetch(path, options = {}) {
   const user = await getAuthenticatedUser();
-  const headers = { 'Content-Type': 'application/json', ...options.headers };
+  const isFormData = options.body instanceof FormData;
+  const headers = { ...options.headers };
+  if (!isFormData) {
+    headers['Content-Type'] = headers['Content-Type'] || 'application/json';
+  }
 
   if (user) {
     // forceRefresh=false: usa el token cacheado si es válido (< 1h)

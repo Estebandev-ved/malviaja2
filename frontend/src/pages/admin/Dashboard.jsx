@@ -2,14 +2,37 @@ import { useState, useEffect } from 'react';
 import { Package, Users, DollarSign, TrendingUp, RefreshCw, Clock, CheckCircle2, Truck, XCircle } from 'lucide-react';
 import DeliveryCalculator from '../../components/admin/DeliveryCalculator';
 import { authFetch } from '../../api';
+import useCountUp from '../../utils/useCountUp';
 
 const ESTADO_STYLES = {
   PENDIENTE: { bg: '#fff3e0', color: '#e65100', icon: <Clock size={14} />, label: 'Pendiente' },
+  PAGADO: { bg: '#e8f5e9', color: '#1b5e20', icon: <CheckCircle2 size={14} />, label: 'Pagado' },
+  REVISION_MANUAL: { bg: '#f3e5f5', color: '#6a1b9a', icon: <Clock size={14} />, label: 'Revisión Manual' },
   ACEPTADO: { bg: '#e3f2fd', color: '#1565c0', icon: <CheckCircle2 size={14} />, label: 'Aceptado' },
   PREPARANDO: { bg: '#fff9c4', color: '#f57f17', icon: <Package size={14} />, label: 'Preparando' },
   EN_CAMINO: { bg: '#e8f5e9', color: '#2e7d32', icon: <Truck size={14} />, label: 'En Camino' },
   ENTREGADO: { bg: '#c8e6c9', color: '#1b5e20', icon: <CheckCircle2 size={14} />, label: 'Entregado' },
   CANCELADO: { bg: '#ffebee', color: '#c62828', icon: <XCircle size={14} />, label: 'Cancelado' },
+};
+
+const KpiCard = ({ stat, loading }) => {
+  const isCurrency = typeof stat.value === 'string' && stat.value.startsWith('$');
+  const rawNumber = isCurrency ? parseInt(stat.value.replace(/[$,]/g, '')) : stat.value;
+  const displayValue = useCountUp(rawNumber, 1000, !loading && rawNumber > 0);
+
+  return (
+    <div style={{ background: 'white', padding: '1.5rem', borderRadius: 'var(--radius-lg)', boxShadow: 'var(--shadow-sm)', border: '1px solid rgba(0,0,0,0.05)', display: 'flex', alignItems: 'center', gap: '1rem' }}>
+      <div style={{ background: `${stat.color}15`, color: stat.color, padding: '0.75rem', borderRadius: 'var(--radius-md)' }}>
+        {stat.icon}
+      </div>
+      <div>
+        <h3 style={{ color: 'var(--color-text-light)', fontSize: '0.8rem', marginBottom: '0.25rem' }}>{stat.title}</h3>
+        <span style={{ fontSize: '1.6rem', fontWeight: 'bold', color: 'var(--color-primary-dark)' }}>
+          {isCurrency ? `$${displayValue.toLocaleString()}` : displayValue.toLocaleString()}
+        </span>
+      </div>
+    </div>
+  );
 };
 
 const Dashboard = () => {
@@ -71,15 +94,7 @@ const Dashboard = () => {
       {/* Stats Cards */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1.5rem', marginBottom: '2rem' }}>
         {stats.map((stat, i) => (
-          <div key={i} style={{ background: 'white', padding: '1.5rem', borderRadius: 'var(--radius-lg)', boxShadow: 'var(--shadow-sm)', border: '1px solid rgba(0,0,0,0.05)', display: 'flex', alignItems: 'center', gap: '1rem' }}>
-            <div style={{ background: `${stat.color}15`, color: stat.color, padding: '0.75rem', borderRadius: 'var(--radius-md)' }}>
-              {stat.icon}
-            </div>
-            <div>
-              <h3 style={{ color: 'var(--color-text-light)', fontSize: '0.8rem', marginBottom: '0.25rem' }}>{stat.title}</h3>
-              <span style={{ fontSize: '1.6rem', fontWeight: 'bold', color: 'var(--color-primary-dark)' }}>{stat.value}</span>
-            </div>
-          </div>
+          <KpiCard key={i} stat={stat} loading={loading} />
         ))}
       </div>
 

@@ -67,7 +67,7 @@ const Quiz = () => {
 
   return (
     <div className="container py-16" style={{ minHeight: 'calc(100vh - 80px)', display: 'flex', alignItems: 'center' }}>
-      <div className="glass" style={{ maxWidth: '800px', margin: '0 auto', padding: '3rem', borderRadius: 'var(--radius-lg)', width: '100%' }}>
+      <div className="glass" style={{ maxWidth: '800px', margin: '0 auto', padding: 'clamp(1.25rem, 5vw, 3rem)', borderRadius: 'var(--radius-lg)', width: '100%' }}>
         
         {step < 5 && (
           <div style={{ marginBottom: '2rem', textAlign: 'center' }}>
@@ -85,17 +85,17 @@ const Quiz = () => {
               <h2 className="section-title">¿Cuál es tu nivel de tolerancia?</h2>
               <p className="text-text-light">Sé honesto. Esto es clave para que no tengas un mal viaje.</p>
             </div>
-            <div style={{ display: 'grid', gap: '1rem' }}>
-              <button className="btn btn--secondary w-full" style={{ padding: '1.5rem', justifyContent: 'flex-start', display: 'flex', alignItems: 'center', gap: '0.75rem' }} onClick={() => handleSelect('tolerance', 'primera_vez')}>
+            <div className="quiz-options" style={{ display: 'grid', gap: '1rem' }}>
+              <button className="btn btn--secondary w-full quiz-option-btn" style={{ padding: 'clamp(1rem, 4vw, 1.5rem)', justifyContent: 'flex-start', display: 'flex', alignItems: 'center', gap: '0.75rem' }} onClick={() => handleSelect('tolerance', 'primera_vez')}>
                 <Leaf size={20} /> Es mi primera vez (o casi nunca consumo)
               </button>
-              <button className="btn btn--secondary w-full" style={{ padding: '1.5rem', justifyContent: 'flex-start', display: 'flex', alignItems: 'center', gap: '0.75rem' }} onClick={() => handleSelect('tolerance', 'ocasional')}>
+              <button className="btn btn--secondary w-full quiz-option-btn" style={{ padding: 'clamp(1rem, 4vw, 1.5rem)', justifyContent: 'flex-start', display: 'flex', alignItems: 'center', gap: '0.75rem' }} onClick={() => handleSelect('tolerance', 'ocasional')}>
                 <GlassWater size={20} /> Ocasional (Solo en fiestas o fines de semana)
               </button>
-              <button className="btn btn--secondary w-full" style={{ padding: '1.5rem', justifyContent: 'flex-start', display: 'flex', alignItems: 'center', gap: '0.75rem' }} onClick={() => handleSelect('tolerance', 'frecuente')}>
+              <button className="btn btn--secondary w-full quiz-option-btn" style={{ padding: 'clamp(1rem, 4vw, 1.5rem)', justifyContent: 'flex-start', display: 'flex', alignItems: 'center', gap: '0.75rem' }} onClick={() => handleSelect('tolerance', 'frecuente')}>
                 <Trees size={20} /> Frecuente (Varias veces a la semana)
               </button>
-              <button className="btn btn--secondary w-full" style={{ padding: '1.5rem', justifyContent: 'flex-start', display: 'flex', alignItems: 'center', gap: '0.75rem' }} onClick={() => handleSelect('tolerance', 'diario')}>
+              <button className="btn btn--secondary w-full quiz-option-btn" style={{ padding: 'clamp(1rem, 4vw, 1.5rem)', justifyContent: 'flex-start', display: 'flex', alignItems: 'center', gap: '0.75rem' }} onClick={() => handleSelect('tolerance', 'diario')}>
                 <Flame size={20} /> Snoop Dogg (Consumo todos los días)
               </button>
             </div>
@@ -105,18 +105,18 @@ const Quiz = () => {
         {/* PREGUNTA 2 */}
         {step === 2 && (
           <div className="quiz-slide animation-fade">
-            <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
+            <div style={{ textAlign: 'center', marginBottom: 'clamp(1rem, 3vw, 2rem)' }}>
               <Sparkles size={48} className="text-secondary" style={{ margin: '0 auto 1rem' }} />
               <h2 className="section-title">¿Qué experiencia buscas hoy?</h2>
             </div>
-            <div style={{ display: 'grid', gap: '1rem' }}>
-              <button className="btn btn--secondary w-full" style={{ padding: '1.5rem', justifyContent: 'flex-start', display: 'flex', alignItems: 'center', gap: '0.75rem' }} onClick={() => handleSelect('effect', 'suave')}>
+            <div className="quiz-options" style={{ display: 'grid', gap: '1rem' }}>
+              <button className="btn btn--secondary w-full quiz-option-btn" style={{ padding: 'clamp(1rem, 4vw, 1.5rem)', justifyContent: 'flex-start', display: 'flex', alignItems: 'center', gap: '0.75rem' }} onClick={() => handleSelect('effect', 'suave')}>
                 <Smile size={20} /> Relajación suave (Ver una película y dormir)
               </button>
-              <button className="btn btn--secondary w-full" style={{ padding: '1.5rem', justifyContent: 'flex-start', display: 'flex', alignItems: 'center', gap: '0.75rem' }} onClick={() => handleSelect('effect', 'medio')}>
+              <button className="btn btn--secondary w-full quiz-option-btn" style={{ padding: 'clamp(1rem, 4vw, 1.5rem)', justifyContent: 'flex-start', display: 'flex', alignItems: 'center', gap: '0.75rem' }} onClick={() => handleSelect('effect', 'medio')}>
                 <PartyPopper size={20} /> Divertido (Risas y socializar con amigos)
               </button>
-              <button className="btn btn--secondary w-full" style={{ padding: '1.5rem', justifyContent: 'flex-start', display: 'flex', alignItems: 'center', gap: '0.75rem' }} onClick={() => handleSelect('effect', 'intenso')}>
+              <button className="btn btn--secondary w-full quiz-option-btn" style={{ padding: 'clamp(1rem, 4vw, 1.5rem)', justifyContent: 'flex-start', display: 'flex', alignItems: 'center', gap: '0.75rem' }} onClick={() => handleSelect('effect', 'intenso')}>
                 <Rocket size={20} /> Malviaja2 (Quiero un viaje astral intenso)
               </button>
             </div>
@@ -126,19 +126,19 @@ const Quiz = () => {
         {/* PREGUNTA 3 */}
         {step === 3 && (
           <div className="quiz-slide animation-fade">
-            <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
+            <div style={{ textAlign: 'center', marginBottom: 'clamp(1rem, 3vw, 2rem)' }}>
               <Scale size={48} className="text-primary-dark" style={{ margin: '0 auto 1rem' }} />
               <h2 className="section-title">Tu peso corporal</h2>
               <p className="text-text-light">El THC se almacena en grasa, tu peso afecta la absorción.</p>
             </div>
-            <div style={{ display: 'grid', gap: '1rem' }}>
-              <button className="btn btn--secondary w-full" style={{ padding: '1.5rem', justifyContent: 'flex-start', display: 'flex', alignItems: 'center', gap: '0.75rem' }} onClick={() => handleSelect('weight', 'ligero')}>
+            <div className="quiz-options" style={{ display: 'grid', gap: '1rem' }}>
+              <button className="btn btn--secondary w-full quiz-option-btn" style={{ padding: 'clamp(1rem, 4vw, 1.5rem)', justifyContent: 'flex-start', display: 'flex', alignItems: 'center', gap: '0.75rem' }} onClick={() => handleSelect('weight', 'ligero')}>
                 <Feather size={20} /> Menos de 60 kg
               </button>
-              <button className="btn btn--secondary w-full" style={{ padding: '1.5rem', justifyContent: 'flex-start', display: 'flex', alignItems: 'center', gap: '0.75rem' }} onClick={() => handleSelect('weight', 'medio')}>
+              <button className="btn btn--secondary w-full quiz-option-btn" style={{ padding: 'clamp(1rem, 4vw, 1.5rem)', justifyContent: 'flex-start', display: 'flex', alignItems: 'center', gap: '0.75rem' }} onClick={() => handleSelect('weight', 'medio')}>
                 <User size={20} /> Entre 60 kg y 85 kg
               </button>
-              <button className="btn btn--secondary w-full" style={{ padding: '1.5rem', justifyContent: 'flex-start', display: 'flex', alignItems: 'center', gap: '0.75rem' }} onClick={() => handleSelect('weight', 'pesado')}>
+              <button className="btn btn--secondary w-full quiz-option-btn" style={{ padding: 'clamp(1rem, 4vw, 1.5rem)', justifyContent: 'flex-start', display: 'flex', alignItems: 'center', gap: '0.75rem' }} onClick={() => handleSelect('weight', 'pesado')}>
                 <Shield size={20} /> Más de 85 kg
               </button>
             </div>
@@ -148,15 +148,15 @@ const Quiz = () => {
         {/* PREGUNTA 4 */}
         {step === 4 && (
           <div className="quiz-slide animation-fade">
-            <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
+            <div style={{ textAlign: 'center', marginBottom: 'clamp(1rem, 3vw, 2rem)' }}>
               <Utensils size={48} className="text-primary" style={{ margin: '0 auto 1rem' }} />
               <h2 className="section-title">¿Cómo planeas consumirlo?</h2>
             </div>
-            <div style={{ display: 'grid', gap: '1rem' }}>
-              <button className="btn btn--secondary w-full" style={{ padding: '1.5rem', justifyContent: 'flex-start', display: 'flex', alignItems: 'center', gap: '0.75rem' }} onClick={() => { handleSelect('food', 'vacio'); setStep(5); }}>
+            <div className="quiz-options" style={{ display: 'grid', gap: '1rem' }}>
+              <button className="btn btn--secondary w-full quiz-option-btn" style={{ padding: 'clamp(1rem, 4vw, 1.5rem)', justifyContent: 'flex-start', display: 'flex', alignItems: 'center', gap: '0.75rem' }} onClick={() => { handleSelect('food', 'vacio'); setStep(5); }}>
                 <Utensils size={20} /> Estómago vacío (Pega más rápido y fuerte)
               </button>
-              <button className="btn btn--secondary w-full" style={{ padding: '1.5rem', justifyContent: 'flex-start', display: 'flex', alignItems: 'center', gap: '0.75rem' }} onClick={() => { handleSelect('food', 'lleno'); setStep(5); }}>
+              <button className="btn btn--secondary w-full quiz-option-btn" style={{ padding: 'clamp(1rem, 4vw, 1.5rem)', justifyContent: 'flex-start', display: 'flex', alignItems: 'center', gap: '0.75rem' }} onClick={() => { handleSelect('food', 'lleno'); setStep(5); }}>
                 <Pizza size={20} /> Después de una buena comida (Efecto prolongado)
               </button>
             </div>
@@ -169,20 +169,20 @@ const Quiz = () => {
             <CheckCircle2 size={64} className="text-secondary" style={{ margin: '0 auto 1.5rem' }} />
             <h2 className="section-title">¡Tenemos tu dosis perfecta!</h2>
             
-            <div style={{ background: '#fff8e1', padding: '2rem', borderRadius: 'var(--radius-md)', margin: '2rem 0', border: '2px dashed var(--color-secondary)' }}>
-              <h3 style={{ fontSize: '1.2rem', color: 'var(--color-primary)', marginBottom: '0.5rem' }}>Dosis Científica Calculada:</h3>
-              <div style={{ fontSize: '3rem', fontWeight: 'bold', color: 'var(--color-primary-dark)', marginBottom: '1rem' }}>
-                {calculateDosage().totalMg} mg <span style={{ fontSize: '1.5rem' }}>THC</span>
+            <div style={{ background: '#fff8e1', padding: 'clamp(1rem, 4vw, 2rem)', borderRadius: 'var(--radius-md)', margin: 'clamp(1rem, 3vw, 2rem) 0', border: '2px dashed var(--color-secondary)' }}>
+              <h3 style={{ fontSize: 'clamp(1rem, 3vw, 1.2rem)', color: 'var(--color-primary)', marginBottom: '0.5rem' }}>Dosis Científica Calculada:</h3>
+              <div style={{ fontSize: 'clamp(2rem, 8vw, 3rem)', fontWeight: 'bold', color: 'var(--color-primary-dark)', marginBottom: '1rem' }}>
+                {calculateDosage().totalMg} mg <span style={{ fontSize: 'clamp(1rem, 4vw, 1.5rem)' }}>THC</span>
               </div>
               <p style={{ color: 'var(--color-text-light)' }}>Esta cantidad está diseñada específicamente para tu metabolismo y tolerancia.</p>
             </div>
 
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem', padding: '0 1rem' }}>
               <span className="font-bold text-primary">Valor de preparación:</span>
-              <span className="font-bold text-secondary" style={{ fontSize: '1.5rem' }}>${calculateDosage().price.toLocaleString()}</span>
+              <span className="font-bold text-secondary" style={{ fontSize: 'clamp(1.2rem, 4vw, 1.5rem)' }}>${calculateDosage().price.toLocaleString()}</span>
             </div>
 
-            <button className="btn btn--primary w-full" style={{ padding: '1.25rem', fontSize: '1.2rem' }} onClick={finishQuiz}>
+            <button className="btn btn--primary w-full" style={{ padding: 'clamp(0.9rem, 3vw, 1.25rem)', fontSize: 'clamp(1rem, 3vw, 1.2rem)' }} onClick={finishQuiz}>
               Añadir este Brownie al Carrito
             </button>
           </div>

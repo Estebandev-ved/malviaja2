@@ -254,6 +254,19 @@
   border: 1px solid rgba(0,0,0,0.05);
 }
 
+.diary-form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+@media (max-width: 500px) {
+  .diary-form-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
 .glass-dark {
   background: rgba(93, 64, 55, 0.05);
 }
@@ -381,4 +394,96 @@
 
 .animation-fade {
   animation: fade-in 0.4s ease-out forwards;
+}
+
+/* ===== Responsive Mobile ===== */
+@media (max-width: 768px) {
+  .perfil-sidebar {
+    min-width: unset;
+  }
+
+  .perfil-card {
+    padding: 1.25rem;
+  }
+
+  .points-header {
+    padding: 1.5rem;
+    gap: 1.5rem;
+  }
+
+  .points-label {
+    font-size: 0.85rem;
+  }
+
+  .points-value {
+    font-size: clamp(2rem, 12vw, 3.5rem);
+  }
+
+  .code-redeem {
+    padding: 1rem;
+  }
+
+  .code-form {
+    flex-direction: column;
+  }
+
+  .code-btn {
+    width: 100%;
+  }
+
+  .reward-icon {
+    width: 48px;
+    height: 48px;
+  }
+
+  .cupon-card {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .referidos-section {
+    padding: 1.5rem !important;
+    flex-direction: column !important;
+  }
+
+  .referidos-link-box {
+    width: 100%;
+  }
+}
+
+@media (max-width: 600px) {
+  .perfil-sidebar .perfil-card {
+    position: static;
+  }
+
+  .perfil-menu-btn {
+    padding: 0.75rem;
+    font-size: 0.95rem;
+  }
+
+  .diary-form {
+    padding: 1.25rem;
+  }
+
+  .diary-entry {
+    padding: 1rem;
+  }
+
+  .info-item {
+    padding: 0.9rem;
+  }
+}
+
+@media (max-width: 400px) {
+  .rewards-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .cupones-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .points-value {
+    font-size: 1.8rem;
+  }
 }
