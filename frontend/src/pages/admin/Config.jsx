@@ -47,8 +47,8 @@ const ConfigAdmin = () => {
     currency: 'COP',
     // Telegram
     telegramEnabled: true,
-    telegramToken: '8462231345:AAEtjjNcWoB_EWhL_vwnM8-DayuPR5_mU3w',
-    telegramChatId: '7135734568',
+    telegramToken: '',
+    telegramChatId: '',
     // Envío
     deliveryPricePerKm: 1500,
     deliveryBase: 'Medellín (Alpujarra)',

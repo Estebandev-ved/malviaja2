@@ -132,27 +132,48 @@ const Home = () => {
             </p>
             <div className="hero__actions" data-reveal>
               {user ? (
-                <Link to="/comestibles" className="btn btn--primary hero__btn" data-magnetic="true" data-magnetic-strength="0.2">
-                  <ShoppingBag size={24} /> Ir al Catálogo
-                </Link>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', width: '100%' }}>
+                  <div style={{
+                    background: 'linear-gradient(135deg, rgba(251,192,45,0.12), rgba(251,192,45,0.04))',
+                    border: '1px solid rgba(251,192,45,0.25)',
+                    borderRadius: '16px', padding: '1.25rem 1.5rem',
+                    backdropFilter: 'blur(10px)',
+                    textAlign: 'center'
+                  }}>
+                    <div style={{ fontSize: '0.8rem', color: 'var(--color-secondary)', fontWeight: 700, letterSpacing: '2px', textTransform: 'uppercase', marginBottom: '0.25rem' }}>
+                      👑 Bienvenido al Club
+                    </div>
+                    <div style={{ fontSize: 'clamp(1rem, 3vw, 1.3rem)', color: '#fff', fontWeight: 'bold' }}>
+                      {user.displayName || 'Miembro'}
+                    </div>
+                    <p style={{ fontSize: '0.85rem', color: 'rgba(255,255,255,0.7)', margin: '0.4rem 0 0' }}>
+                      Explora nuestro catálogo premium y tus beneficios exclusivos.
+                    </p>
+                  </div>
+                  <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
+                    <Link to="/comestibles" className="btn btn--primary hero__btn" data-magnetic="true" data-magnetic-strength="0.2" style={{ flex: 1 }}>
+                      <ShoppingBag size={20} /> Ir al Catálogo
+                    </Link>
+                    <Link to="/perfil" className="btn btn--secondary hero__btn" data-magnetic="true" data-magnetic-strength="0.14" style={{ flex: 1 }}>
+                      Mis Beneficios
+                    </Link>
+                  </div>
+                </div>
               ) : (
-                <Link to="/login" className="btn btn--primary hero__btn hero__btn--pulse" data-magnetic="true" data-magnetic-strength="0.2">
-                  <ShieldCheck size={24} /> Solicitar Acceso al Club
-                </Link>
-              )}
-              <div className="hero__secondary-actions">
-                <Link to="/comestibles" className="btn btn--secondary hero__btn" style={{ flex: 1 }}>
-                  Catálogo Clásico
-                </Link>
-                <Link to="/quienes-somos" className="btn btn--primary hero__btn hero__btn--outline" data-magnetic="true" data-magnetic-strength="0.14">
-                  Conócenos
-                </Link>
-                {user && (
-                  <Link to="/perfil" className="btn btn--secondary hero__btn" style={{ flex: 1 }}>
-                    Mi Perfil
+                <>
+                  <Link to="/login" className="btn btn--primary hero__btn hero__btn--pulse" data-magnetic="true" data-magnetic-strength="0.2">
+                    <ShieldCheck size={24} /> Solicitar Acceso al Club
                   </Link>
-                )}
-              </div>
+                  <div className="hero__secondary-actions">
+                    <Link to="/comestibles" className="btn btn--secondary hero__btn" style={{ flex: 1 }}>
+                      Catálogo Clásico
+                    </Link>
+                    <Link to="/quienes-somos" className="btn btn--primary hero__btn hero__btn--outline" data-magnetic="true" data-magnetic-strength="0.14">
+                      Conócenos
+                    </Link>
+                  </div>
+                </>
+              )}
             </div>
           </div>
             <div className="hero__image-wrapper hero__image-wrapper--tilt" data-reveal onMouseMove={handleTilt} onMouseLeave={resetTilt}>

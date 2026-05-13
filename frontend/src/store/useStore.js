@@ -3,6 +3,21 @@ import { auth } from '../firebase';
 import { onAuthStateChanged, signOut } from 'firebase/auth';
 import { authFetch, apiFetch } from '../api';
 
+export const ACHIEVEMENTS = [
+  { id: 1, nombre: 'Primer Vuelo', descripcion: 'Completa tu primer pedido', icono: 'trophy', tipo: 'pedidos', requisito: 1, puntosRecompensa: 200 },
+  { id: 2, nombre: 'Viajero Frecuente', descripcion: 'Completa 5 pedidos', icono: 'star', tipo: 'pedidos', requisito: 5, puntosRecompensa: 500 },
+  { id: 3, nombre: 'Astronauta', descripcion: 'Completa 10 pedidos', icono: 'zap', tipo: 'pedidos', requisito: 10, puntosRecompensa: 1000 },
+  { id: 4, nombre: 'Leyenda', descripcion: 'Completa 25 pedidos', icono: 'crown', tipo: 'pedidos', requisito: 25, puntosRecompensa: 2500 },
+  { id: 5, nombre: 'Gourmet', descripcion: 'Prueba todos los productos del catálogo', icono: 'gift', tipo: 'productos', requisito: 3, puntosRecompensa: 300 },
+  { id: 6, nombre: 'Racha de Fuego', descripcion: 'Mantén 7 días consecutivos sin perder tu racha', icono: 'flame', tipo: 'racha', requisito: 7, puntosRecompensa: 500 },
+  { id: 7, nombre: 'Imparable', descripcion: 'Mantén 30 días consecutivos', icono: 'target', tipo: 'racha', requisito: 30, puntosRecompensa: 2000 },
+  { id: 8, nombre: 'Coleccionista', descripcion: 'Canjea 3 recompensas', icono: 'award', tipo: 'canjes', requisito: 3, puntosRecompensa: 400 },
+  { id: 9, nombre: 'Influencer', descripcion: 'Consigue 3 referidos exitosos', icono: 'sparkles', tipo: 'referidos', requisito: 3, puntosRecompensa: 600 },
+  { id: 10, nombre: 'VIP', descripcion: 'Alcanza 8,000 puntos de vuelo acumulados', icono: 'shopping', tipo: 'puntos', requisito: 8000, puntosRecompensa: 1500 },
+  { id: 11, nombre: 'Ahorrador', descripcion: 'Acumula 2,000 Puntos de Vuelo', icono: 'wallet', tipo: 'puntos', requisito: 2000, puntosRecompensa: 300 },
+  { id: 12, nombre: 'Inversionista', descripcion: 'Acumula 5,000 Puntos de Vuelo', icono: 'trending-up', tipo: 'puntos', requisito: 5000, puntosRecompensa: 800 },
+];
+
 /**
  * BUG FIX #8: El listener onAuthStateChanged se registraba dentro de create(),
  * lo que causaba múltiples registros y memory leaks al recargar el módulo (HMR).
@@ -88,8 +103,25 @@ const useStore = create((set, get) => {
   clearCart: () => set({ carrito: [] }),
 
   // Gamificación (Puntos y Cupones)
-  puntosTotales: 1500, // Empieza con bono de bienvenida
+  puntosTotales: 1500,
   cuponesActivos: [],
+
+  // Logros y Rachas
+  logrosObtenidos: [],
+  rachaDias: 0,
+  rachaMaxima: 0,
+  ultimoPedidoFecha: null,
+  totalPedidos: 0,
+  totalCanjes: 0,
+
+  addLogro: (logroId) => set((state) => ({
+    logrosObtenidos: state.logrosObtenidos.includes(logroId) ? state.logrosObtenidos : [...state.logrosObtenidos, logroId]
+  })),
+
+  setRacha: (dias, maxima) => set({ rachaDias: dias, rachaMaxima: maxima }),
+  setTotalPedidos: (n) => set({ totalPedidos: n }),
+  setUltimoPedidoFecha: (f) => set({ ultimoPedidoFecha: f }),
+  setTotalCanjes: (n) => set({ totalCanjes: n }),
 
   addPuntos: (cantidad) => set((state) => ({
     puntosTotales: state.puntosTotales + cantidad
@@ -106,6 +138,32 @@ const useStore = create((set, get) => {
   usarCupon: (cupoId) => set((state) => ({
     cuponesActivos: state.cuponesActivos.filter(c => c.cupoId !== cupoId)
   })),
+
+  checkLogros: () => set((state) => {
+    let nuevosPuntos = state.puntosTotales;
+    const nuevosLogros = [...state.logrosObtenidos];
+    let changed = true;
+    while (changed) {
+      changed = false;
+      for (const a of ACHIEVEMENTS) {
+        if (nuevosLogros.includes(a.id)) continue;
+        let cumple = false;
+        switch (a.tipo) {
+          case 'puntos': cumple = nuevosPuntos >= a.requisito; break;
+          case 'pedidos': cumple = state.totalPedidos >= a.requisito; break;
+          case 'racha': cumple = state.rachaDias >= a.requisito; break;
+          case 'canjes': cumple = state.totalCanjes >= a.requisito; break;
+        }
+        if (cumple) {
+          nuevosLogros.push(a.id);
+          nuevosPuntos += a.puntosRecompensa;
+          changed = true;
+        }
+      }
+    }
+    if (nuevosLogros.length === state.logrosObtenidos.length && nuevosPuntos === state.puntosTotales) return state;
+    return { logrosObtenidos: nuevosLogros, puntosTotales: nuevosPuntos };
+  }),
 
   // Productos del catálogo iniciales para carga ultra-rápida (Optimistic UI)
   productos: [

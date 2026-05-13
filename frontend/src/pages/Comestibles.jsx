@@ -1,6 +1,9 @@
-import { useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { Star, MessageSquare } from 'lucide-react';
 import useStore from '../store/useStore';
+import { apiFetch } from '../api';
+import ProductReviews from '../components/ProductReviews';
 
 const flyToCart = (event, product) => {
   const btn = event.currentTarget;
@@ -37,16 +40,35 @@ const flyToCart = (event, product) => {
 
 const Comestibles = () => {
   const { productos, fetchProductos, loading, addToCart, toggleCart } = useStore();
+  const [resenasData, setResenasData] = useState({});
+  const [reviewProducto, setReviewProducto] = useState(null);
 
   useEffect(() => {
     fetchProductos();
   }, [fetchProductos]);
+
+  useEffect(() => {
+    if (!productos.length) return;
+    productos.forEach(prod => {
+      apiFetch(`/api/productos/${prod.id}/resenas/resumen`).then(r => r.ok && r.json()).then(d => {
+        if (d) setResenasData(prev => ({ ...prev, [prod.id]: d }));
+      }).catch(() => {});
+    });
+  }, [productos]);
 
   const handleAdd = (prod, e) => {
     flyToCart(e, prod);
     setTimeout(() => addToCart(prod), 350);
     setTimeout(() => toggleCart(), 700);
   };
+
+  const renderStars = (rating) => (
+    <div style={{ display: 'inline-flex', gap: '1px', alignItems: 'center' }}>
+      {[1, 2, 3, 4, 5].map(s => (
+        <Star key={s} size={12} fill={s <= Math.round(rating) ? '#fbc02d' : 'none'} color={s <= Math.round(rating) ? '#fbc02d' : '#e0e0e0'} />
+      ))}
+    </div>
+  );
 
   return (
     <div className="container py-16">
@@ -97,12 +119,32 @@ const Comestibles = () => {
                   Dosis: {prod.dosis}
                 </span>
               </div>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.75rem' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                  {renderStars(resenasData[prod.id]?.promedio || 0)}
+                  <span style={{ fontSize: '0.75rem', color: '#999' }}>
+                    {resenasData[prod.id]?.total || 0}
+                  </span>
+                </div>
+                <button onClick={() => setReviewProducto(prod)}
+                  style={{ background: 'none', border: 'none', color: 'var(--color-primary)', cursor: 'pointer', fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: '0.25rem', padding: '0.25rem 0.5rem', borderRadius: '6px' }}>
+                  <MessageSquare size={14} /> Reseñas
+                </button>
+              </div>
               <button className="btn btn--primary w-full" data-magnetic="true" data-magnetic-strength="0.12" onClick={(e) => handleAdd(prod, e)}>
                 Añadir al Carrito
               </button>
             </div>
           ))}
         </div>
+      )}
+
+      {reviewProducto && (
+        <ProductReviews
+          productoId={reviewProducto.id}
+          productoNombre={reviewProducto.nombre}
+          onClose={() => setReviewProducto(null)}
+        />
       )}
     </div>
   );

@@ -1,9 +1,10 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import useStore from '../store/useStore';
+import useStore, { ACHIEVEMENTS } from '../store/useStore';
 import { useNavigate } from 'react-router-dom';
 import { CheckCircle2, Banknote, ShieldCheck, Copy, Check, Lock, Eye, EyeOff, Clock, Info, QrCode, ArrowLeft, ArrowRight, ShoppingCart, User, CreditCard, Download, ExternalLink, Smartphone, Building2, HelpCircle } from 'lucide-react';
 import { authFetch } from '../api';
 import useCountUp from '../utils/useCountUp';
+import AchievementToast from '../components/AchievementToast';
 
 
 const AnimatedTotal = ({ value }) => {
@@ -239,6 +240,7 @@ const Checkout = () => {
   const [showQR, setShowQR] = useState(false);
   const [showReceipt, setShowReceipt] = useState(false);
   const [pedidoActual, setPedidoActual] = useState(null);
+  const [nuevoLogro, setNuevoLogro] = useState(null);
 
   useEffect(() => {
     setReferencia(generateRef());
@@ -316,13 +318,15 @@ const Checkout = () => {
     try {
       const response = await authFetch('/api/pedidos/checkout', { method: 'POST', body: form });
       if (response.status === 409) {
-        const errorData = await response.json();
-        alert(`⚠️ No podemos procesar tu pedido:\n\n${errorData.error}\n\nPor favor ajusta tu carrito.`);
+        const errorData = await response.json().catch(() => ({}));
+        const mensaje = errorData.error && errorData.error.includes('Stock')
+          ? `Stock insuficiente para uno de los productos. Por favor ajusta tu carrito e intenta de nuevo.`
+          : `No podemos procesar tu pedido: ${errorData.error || 'Error del servidor'}. Por favor ajusta tu carrito.`;
+        alert(`⚠️ ${mensaje}`);
         setIsSubmitting(false); return;
       }
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.error || 'Error al enviar el pedido');
+        throw new Error('Error del servidor al procesar el pedido. Intenta de nuevo.');
       }
       const data = await response.json();
       const refBackend = data.referencia || referencia;
@@ -333,9 +337,34 @@ const Checkout = () => {
       setReferencia(refBackend);
       setSuccess(true);
       clearCart();
+
+      const st = useStore.getState();
+      const oldLogros = [...st.logrosObtenidos];
+      st.setTotalPedidos(st.totalPedidos + 1);
+
+      const today = new Date().toISOString().split('T')[0];
+      const lastDate = st.ultimoPedidoFecha;
+      let newRacha = st.rachaDias;
+      if (lastDate) {
+        const diff = (new Date(today) - new Date(lastDate)) / (1000 * 60 * 60 * 24);
+        newRacha = diff <= 2 ? st.rachaDias + 1 : 1;
+      } else {
+        newRacha = 1;
+      }
+      st.setRacha(newRacha, Math.max(newRacha, st.rachaMaxima));
+      st.setUltimoPedidoFecha(today);
+      st.addPuntos(100);
+
+      st.checkLogros();
+      const finalState = useStore.getState();
+      const nuevos = finalState.logrosObtenidos.filter(id => !oldLogros.includes(id));
+      if (nuevos.length > 0) {
+        const logro = ACHIEVEMENTS.find(a => a.id === nuevos[0]);
+        if (logro) setNuevoLogro(logro);
+      }
     } catch (error) {
-      alert(`Hubo un error procesando tu pedido:\n${error.message}`);
-      console.error(error);
+      alert('Hubo un error procesando tu pedido. Por favor intenta de nuevo o contacta a soporte.');
+      console.error('Error en checkout:', error);
     } finally { setIsSubmitting(false); }
   };
 
@@ -369,6 +398,7 @@ const Checkout = () => {
             <button className="btn" style={{ border: '1px solid #ddd' }} onClick={() => navigate('/')}>Volver al Inicio</button>
           </div>
           {showReceipt && pedidoActual && <PDFReceipt pedido={pedidoActual} referencia={referencia} onClose={() => setShowReceipt(false)} />}
+          {nuevoLogro && <AchievementToast logro={nuevoLogro} onClose={() => setNuevoLogro(null)} />}
         </div>
       </div>
       </div>

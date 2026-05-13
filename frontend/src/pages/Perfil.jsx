@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import useStore from '../store/useStore';
+import useStore, { ACHIEVEMENTS } from '../store/useStore';
 import { authFetch } from '../api';
-import { User, LogOut, Package, MapPin, Phone, Award, Star, BookOpen, Gift, Send, Ticket, Crown, CheckCircle2 } from 'lucide-react';
+import { User, LogOut, Package, MapPin, Phone, Award, Star, BookOpen, Gift, Send, Ticket, Crown, CheckCircle2, Lock, Trophy, Zap, ShoppingBag, Flame, Target, Sparkles, Wallet, TrendingUp } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import MisPedidos from './MisPedidos';
 import useCountUp from '../utils/useCountUp';
@@ -13,7 +13,7 @@ const AnimatedNumber = ({ value }) => {
 };
 
 const Perfil = () => {
-  const { user, logout, puntosTotales, cuponesActivos, addPuntos, restarPuntos, addCupon } = useStore();
+  const { user, logout, puntosTotales, cuponesActivos, addPuntos, restarPuntos, addCupon, logrosObtenidos, addLogro, rachaDias, totalCanjes, setTotalCanjes, checkLogros } = useStore();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('recompensas');
   const [perfilDb, setPerfilDb] = useState(null);
@@ -33,9 +33,10 @@ const Perfil = () => {
 
   // Catálogo de Recompensas
   const catalogoRecompensas = [
-    { id: 'boleto', nombre: 'Boleto Dorado', descripcion: '1 ticket para la mega-rifa mensual de Malviaja2.', costo: 500, icono: Ticket },
-    { id: 'envio', nombre: 'Envío Gratis', descripcion: 'Tu próximo pedido sin costo de domicilio.', costo: 1000, icono: Package },
-    { id: 'regalo', nombre: 'Regalo Sorpresa', descripcion: 'Añadimos un mini-comestible secreto a tu envío.', costo: 2000, icono: Gift },
+    { id: 'sticker', nombre: 'Sticker Trip', descripcion: 'Calcomanía exclusiva Malviaja2 para tu laptop o botella.', costo: 100, icono: Star },
+    { id: 'boleto', nombre: 'Boleto Dorado', descripcion: '1 ticket para la mega-rifa mensual de Malviaja2.', costo: 300, icono: Ticket },
+    { id: 'envio', nombre: 'Envío Gratis', descripcion: 'Tu próximo pedido sin costo de domicilio.', costo: 800, icono: Package },
+    { id: 'regalo', nombre: 'Regalo Sorpresa', descripcion: 'Añadimos un mini-comestible secreto a tu envío.', costo: 1500, icono: Gift },
     { id: 'vip', nombre: 'Pase VIP "Catador"', descripcion: 'Acceso temprano y muestra de nuevos sabores.', costo: 3000, icono: Crown },
     { id: 'brownie', nombre: 'Brownie Gratis', descripcion: 'Un Brownie Clásico o A Tu Medida totalmente gratis.', costo: 5000, icono: Star },
   ];
@@ -85,7 +86,9 @@ const Perfil = () => {
     if (puntosTotales >= premio.costo) {
       restarPuntos(premio.costo);
       addCupon(premio);
-      
+      setTotalCanjes(totalCanjes + 1);
+      checkLogros();
+
       setMensajePromo({ tipo: 'exito', texto: `¡Felicidades! Has canjeado: ${premio.nombre}. Revisa tus premios guardados.` });
       setTimeout(() => setMensajePromo(null), 5000);
       window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -127,23 +130,45 @@ const Perfil = () => {
                 {user.displayName || perfilDb?.nombre || 'Viajero Trip'}
               </h2>
               {(() => {
-                let nivel = 'Turista';
-                let colorBg = '#e0e0e0';
-                let colorText = '#424242';
-                
-                if (puntosTotales >= 5000) {
-                  nivel = 'Astronauta VIP';
-                  colorBg = '#FFD700'; // Dorado VIP
-                  colorText = '#000000';
-                } else if (puntosTotales >= 2000) {
-                  nivel = 'Explorador';
-                  colorBg = '#C0C0C0'; // Plateado
-                  colorText = '#000000';
+                const niveles = [
+                  { nombre: 'Caminante', icono: '🥾', min: 0, max: 999 },
+                  { nombre: 'Turista', icono: '🗺️', min: 1000, max: 2999 },
+                  { nombre: 'Viajero', icono: '✈️', min: 3000, max: 5999 },
+                  { nombre: 'Explorador', icono: '🚀', min: 6000, max: 9999 },
+                  { nombre: 'Astronauta VIP', icono: '👑', min: 10000, max: Infinity },
+                ];
+                const nivelActual = niveles.reduce((prev, curr) => puntosTotales >= curr.min ? curr : prev, niveles[0]);
+                const idx = niveles.indexOf(nivelActual);
+                const siguienteNivel = niveles[idx + 1];
+                let progreso = 100;
+                if (siguienteNivel) {
+                  const rango = siguienteNivel.min - nivelActual.min;
+                  const puntosEnNivel = puntosTotales - nivelActual.min;
+                  progreso = Math.min(100, Math.max(0, Math.round((puntosEnNivel / rango) * 100)));
                 }
-
                 return (
-                  <div style={{ display: 'inline-block', background: colorBg, color: colorText, padding: '0.3rem 1rem', borderRadius: 'var(--radius-full)', fontSize: '0.85rem', fontWeight: 'bold', marginTop: '0.5rem', boxShadow: 'var(--shadow-sm)' }}>
-                    Nivel: {nivel}
+                  <div style={{ marginTop: '0.75rem', background: 'var(--color-background)', padding: '1rem', borderRadius: 'var(--radius-lg)' }}>
+                    <div style={{ fontSize: '2rem' }}>{nivelActual.icono}</div>
+                    <div style={{ fontWeight: 'bold', color: 'var(--color-primary-dark)', fontSize: '1rem', marginBottom: '0.25rem' }}>{nivelActual.nombre}</div>
+                    {siguienteNivel && (
+                      <>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.65rem', color: 'var(--color-text-light)', marginBottom: '0.25rem' }}>
+                          <span>{puntosTotales.toLocaleString()} pts</span>
+                          <span>{siguienteNivel.icono} {siguienteNivel.min.toLocaleString()} pts</span>
+                        </div>
+                        <div className="level-progress-track">
+                          <div className="level-progress-fill" style={{ width: `${progreso}%` }} />
+                        </div>
+                        <div style={{ fontSize: '0.65rem', color: 'var(--color-text-light)', marginTop: '0.25rem' }}>
+                          Faltan {(siguienteNivel.min - puntosTotales).toLocaleString()} pts para {siguienteNivel.nombre}
+                        </div>
+                      </>
+                    )}
+                    {rachaDias > 0 && (
+                      <div style={{ marginTop: '0.75rem', fontSize: '0.85rem', color: '#e65100', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                        <Flame size={16} /> Racha de {rachaDias} días
+                      </div>
+                    )}
                   </div>
                 );
               })()}
@@ -167,6 +192,10 @@ const Perfil = () => {
               
               <button onClick={() => setActiveTab('diario')} className={`perfil-menu-btn ${activeTab === 'diario' ? 'active' : ''}`}>
                 <BookOpen size={20} style={{ marginRight: '1rem' }} /> Diario de Viaje
+              </button>
+
+              <button onClick={() => setActiveTab('logros')} className={`perfil-menu-btn ${activeTab === 'logros' ? 'active' : ''}`}>
+                <Trophy size={20} style={{ marginRight: '1rem' }} /> Logros
               </button>
 
               <button onClick={() => setActiveTab('info')} className={`perfil-menu-btn ${activeTab === 'info' ? 'active' : ''}`}>
@@ -332,6 +361,53 @@ const Perfil = () => {
                     <p style={{ color: 'var(--color-text-light)', fontStyle: 'italic', background: 'rgba(0,0,0,0.03)', padding: '1rem', borderRadius: 'var(--radius-sm)' }}>"{nota.efecto}"</p>
                   </div>
                 ))}
+              </div>
+            </div>
+          )}
+
+          {/* TAB: LOGROS */}
+          {activeTab === 'logros' && (
+            <div className="perfil-card glass animation-fade">
+              <h2 style={{ fontSize: '1.8rem', marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--color-primary-dark)', fontWeight: 'bold' }}>
+                <Trophy size={28} className="text-secondary" /> Logros y Trofeos
+              </h2>
+              <p style={{ color: 'var(--color-text-light)', marginBottom: '2rem' }}>
+                Desbloquea logros completando pedidos, manteniendo tu racha activa y más. ¡Cada logro te da Puntos de Vuelo!
+              </p>
+
+              {rachaDias > 0 && (
+                <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', background: 'linear-gradient(135deg, #fff3e0, #ffe0b2)', padding: '0.5rem 1rem', borderRadius: 'var(--radius-full)', marginBottom: '1.5rem', border: '1px solid #ffcc80', fontWeight: 'bold', color: '#e65100', fontSize: '0.9rem' }}>
+                  <Flame size={20} /> Racha de {rachaDias} días 🔥
+                </div>
+              )}
+
+              <div className="logros-grid">
+                {ACHIEVEMENTS.map(logro => {
+                  const obtenido = logrosObtenidos.includes(logro.id);
+                  const iconMap = { trophy: Trophy, star: Star, zap: Zap, gift: Gift, shopping: ShoppingBag, flame: Flame, crown: Crown, award: Award, target: Target, sparkles: Sparkles, wallet: Wallet, 'trending-up': TrendingUp };
+                  const Icon = iconMap[logro.icono] || Trophy;
+                  return (
+                    <div key={logro.id} className={`logro-card ${obtenido ? 'won' : 'locked'}`}>
+                      <div className={`logro-icon ${obtenido ? 'won' : 'locked'}`}>
+                        {obtenido ? <Icon size={28} /> : <Lock size={28} />}
+                      </div>
+                      <h4>{logro.nombre}</h4>
+                      <p>{logro.descripcion}</p>
+                      <div className="logro-puntos recompensa">{obtenido ? `+${logro.puntosRecompensa} pts` : `+${logro.puntosRecompensa} pts`}</div>
+                      {obtenido && <div className="logro-status">✅ Desbloqueado</div>}
+                    </div>
+                  );
+                })}
+              </div>
+
+              <div style={{ marginTop: '3rem', padding: '1.5rem', background: 'var(--color-background)', borderRadius: 'var(--radius-lg)' }}>
+                <h3 style={{ color: 'var(--color-primary-dark)', fontSize: '1.1rem', marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}><Award size={20} /> Progreso General</h3>
+                <p style={{ fontSize: '0.85rem', color: 'var(--color-text-light)', marginBottom: '0.75rem' }}>
+                  Has desbloqueado {logrosObtenidos.length} de {ACHIEVEMENTS.length} logros
+                </p>
+                <div className="level-progress-track" style={{ height: '10px' }}>
+                  <div className="level-progress-fill" style={{ width: `${Math.round((logrosObtenidos.length / ACHIEVEMENTS.length) * 100)}%`, height: '10px' }} />
+                </div>
               </div>
             </div>
           )}
