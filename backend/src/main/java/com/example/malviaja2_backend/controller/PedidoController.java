@@ -25,6 +25,15 @@ import java.util.Optional;
 @RequestMapping("/api/pedidos")
 public class PedidoController {
 
+    @GetMapping("/referencia/{ref}")
+    public ResponseEntity<?> obtenerPorReferencia(@PathVariable String ref) {
+        return pedidoService.obtenerPorReferencia(ref)
+                .<ResponseEntity<?>>map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
+    }
+
+
+
     private final PedidoService pedidoService;
     private final UsuarioRepository usuarioRepository;
     private static final Logger log = LoggerFactory.getLogger(PedidoController.class);
@@ -108,7 +117,8 @@ public class PedidoController {
             Pedido pedido = pedidoService.procesarCheckout(request, comprobante);
             return ResponseEntity.ok(Map.of(
                     "mensaje", "Pedido procesado con éxito.",
-                    "pedidoId", pedido.getId()
+                    "pedidoId", pedido.getId(),
+                    "referencia", pedido.getReferencia() != null ? pedido.getReferencia() : ""
             ));
         } catch (IllegalStateException e) {
             // Error de negocio controlado (ej: stock insuficiente) → 409 Conflict

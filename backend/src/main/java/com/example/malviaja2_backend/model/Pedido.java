@@ -2,6 +2,7 @@ package com.example.malviaja2_backend.model;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Entity
@@ -30,7 +31,28 @@ public class Pedido {
     private String carritoJson;
 
     @Column(nullable = false)
-    private String estado = "PENDIENTE"; // PENDIENTE, PREPARANDO, EN_CAMINO, ENTREGADO, CANCELADO
+    private String estado = "PENDIENTE"; // PENDIENTE, PAGADO, REVISION_MANUAL, PREPARANDO, EN_CAMINO, ENTREGADO, CANCELADO
+
+    @Column(unique = true)
+    private String referencia;
+
+    @Column(name = "referencia_pago")
+    private String referenciaPago;
+
+    @Column(columnDefinition = "TEXT")
+    private String comprobanteUrl;
+
+    @Column(name = "entidad_pago")
+    private String entidadPago;
+
+    @Column(name = "fecha_pago")
+    private LocalDate fechaPago;
+
+    @Column(name = "confianza_extraccion")
+    private Double confianzaExtraccion;
+
+    @Column(name = "ocr_json", columnDefinition = "TEXT")
+    private String ocrJson;
 
     @Column(name = "fecha_pedido")
     private LocalDateTime fechaPedido;
@@ -70,6 +92,26 @@ public class Pedido {
 
     public void setEstado(String estado) {
         this.estado = estado;
+    }
+
+    public void setReferenciaPago(String referenciaPago) {
+        this.referenciaPago = referenciaPago;
+    }
+
+    public void setEntidadPago(String entidadPago) {
+        this.entidadPago = entidadPago;
+    }
+
+    public void setFechaPago(LocalDate fechaPago) {
+        this.fechaPago = fechaPago;
+    }
+
+    public void setConfianzaExtraccion(Double confianzaExtraccion) {
+        this.confianzaExtraccion = confianzaExtraccion;
+    }
+
+    public void setOcrJson(String ocrJson) {
+        this.ocrJson = ocrJson;
     }
 
     public Usuario getUsuario() {

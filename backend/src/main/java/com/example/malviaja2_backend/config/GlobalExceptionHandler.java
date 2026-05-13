@@ -13,8 +13,8 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Map<String, String>> handleAllExceptions(Exception ex) {
-        log.error("Unhandled exception: ", ex);
+        log.error("Error interno del servidor: ", ex);
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(Map.of("error", "Internal Server Error", "message", ex.getMessage() != null ? ex.getMessage() : "No message"));
+                .body(Map.of("error", "Error interno del servidor. Intenta de nuevo más tarde."));
     }
 }

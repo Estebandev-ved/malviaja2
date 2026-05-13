@@ -16,6 +16,7 @@ import org.springframework.web.cors.CorsConfiguration;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Configuration
 @EnableWebSecurity
@@ -28,8 +29,9 @@ public class SecurityConfig {
 
     @Bean
     FirebaseAuthFilter firebaseAuthFilter(UsuarioRepository usuarioRepository, 
-                                          com.example.malviaja2_backend.service.ConfiguracionService configuracionService) {
-        return new FirebaseAuthFilter(usuarioRepository, configuracionService);
+                                          com.example.malviaja2_backend.service.ConfiguracionService configuracionService,
+                                          @Value("${app.admin.uid:}") String adminUid) {
+        return new FirebaseAuthFilter(usuarioRepository, configuracionService, adminUid);
     }
 
     @Bean
@@ -43,12 +45,18 @@ public class SecurityConfig {
         http
             .cors(cors -> cors.configurationSource(request -> {
                 CorsConfiguration config = new CorsConfiguration();
-                config.setAllowedOriginPatterns(List.of("*")); // Permite cualquier origen sin romper credenciales
+                List<String> origins = allowedOrigins.stream()
+                        .filter(o -> !o.isBlank())
+                        .collect(Collectors.toList());
+                if (!origins.isEmpty()) {
+                    config.setAllowedOrigins(origins);
+                } else {
+                    config.setAllowedOriginPatterns(List.of("*"));
+                }
                 config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
                 config.setAllowedHeaders(List.of("*"));
-                config.setExposedHeaders(List.of("Authorization"));
                 config.setAllowCredentials(true);
-                config.setMaxAge(3600L); // Cache del preflight 1 hora
+                config.setMaxAge(3600L);
                 return config;
             }))
             .csrf(csrf -> csrf.disable())
@@ -57,8 +65,12 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> auth
                 // Endpoints públicos
                 .requestMatchers(HttpMethod.GET, "/api/productos").permitAll()
-                .requestMatchers(HttpMethod.GET, "/api/configuracion").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/productos/*/resenas").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/productos/*/resenas/resumen").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/logros").permitAll()
                 .requestMatchers("/error").permitAll()
+                // Admin-only
+                .requestMatchers(HttpMethod.GET, "/api/configuracion").hasAuthority("ADMIN")
                 // SEGURIDAD: El endpoint /api/setup/make-admin fue ELIMINADO intencionalmente.
                 // No debe existir ningún endpoint público de elevación de privilegios en producción.
                 // Endpoints autenticados

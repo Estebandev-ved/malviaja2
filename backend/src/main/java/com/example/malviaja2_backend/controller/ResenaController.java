@@ -5,6 +5,7 @@ import com.example.malviaja2_backend.service.ResenaService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -29,7 +30,10 @@ public class ResenaController {
     }
 
     @PostMapping("/productos/{productoId}/resenas")
-    public ResponseEntity<?> crearResena(@PathVariable Long productoId, @RequestBody Resena resena) {
+    public ResponseEntity<?> crearResena(@PathVariable Long productoId, @RequestBody Resena resena,
+                                          Authentication auth) {
+        String uid = auth.getName();
+        resena.setUsuarioUid(uid);
         resena.setProductoId(productoId);
         try {
             return ResponseEntity.ok(resenaService.crearResena(resena));
@@ -39,9 +43,17 @@ public class ResenaController {
     }
 
     @DeleteMapping("/resenas/{id}")
-    public ResponseEntity<?> eliminarResena(@PathVariable Long id) {
-        if (resenaService.buscarPorId(id).isEmpty()) {
+    public ResponseEntity<?> eliminarResena(@PathVariable Long id, Authentication auth) {
+        String uid = auth.getName();
+        boolean isAdmin = auth.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("ADMIN"));
+        var optResena = resenaService.buscarPorId(id);
+        if (optResena.isEmpty()) {
             return ResponseEntity.notFound().build();
+        }
+        Resena resena = optResena.get();
+        if (!isAdmin && !resena.getUsuarioUid().equals(uid)) {
+            return ResponseEntity.status(403).body(Map.of("error", "No puedes eliminar una reseña de otro usuario"));
         }
         resenaService.eliminar(id);
         return ResponseEntity.ok(Map.of("mensaje", "Reseña eliminada correctamente."));

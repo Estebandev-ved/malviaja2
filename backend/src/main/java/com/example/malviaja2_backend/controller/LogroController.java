@@ -7,6 +7,7 @@ import com.example.malviaja2_backend.repository.UsuarioLogroRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -32,8 +33,8 @@ public class LogroController {
     }
 
     @PostMapping("/logros/reclamar")
-    public ResponseEntity<?> reclamarLogro(@RequestBody Map<String, String> body) {
-        String usuarioUid = body.get("usuarioUid");
+    public ResponseEntity<?> reclamarLogro(@RequestBody Map<String, String> body, Authentication auth) {
+        String usuarioUid = auth.getName();
         Long logroId = Long.parseLong(body.get("logroId"));
 
         if (usuarioLogroRepository.existsByUsuarioUidAndLogroId(usuarioUid, logroId)) {

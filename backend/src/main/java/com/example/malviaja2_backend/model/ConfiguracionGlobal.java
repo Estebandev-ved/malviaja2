@@ -1,5 +1,6 @@
 package com.example.malviaja2_backend.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
@@ -27,7 +28,9 @@ public class ConfiguracionGlobal {
 
     // Telegram
     private Boolean telegramEnabled = true;
+    @JsonIgnore
     private String telegramToken = "";
+    @JsonIgnore
     private String telegramChatId = "";
 
     // Envío

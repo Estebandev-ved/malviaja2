@@ -33,6 +33,8 @@ public class PedidoRequest {
     @Size(max = 10000, message = "El carrito supera el tamaño máximo permitido")
     private String carrito;
 
+    private String referencia;
+
     public String getUserId() {
         return userId;
     }

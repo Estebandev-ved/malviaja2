@@ -27,6 +27,9 @@ public class Usuario {
     private String rol = "USER";
 
     @Column(nullable = false)
+    private Integer puntos = 0;
+
+    @Column(nullable = false)
     private Boolean activo = true;
 
     @Column(name = "primer_compra_realizada")

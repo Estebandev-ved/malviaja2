@@ -8,8 +8,8 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -19,11 +19,19 @@ import java.io.IOException;
 import java.util.List;
 
 @Slf4j
-@RequiredArgsConstructor
 public class FirebaseAuthFilter extends OncePerRequestFilter {
 
     private final UsuarioRepository usuarioRepository;
     private final com.example.malviaja2_backend.service.ConfiguracionService configuracionService;
+    private final String adminUid;
+
+    public FirebaseAuthFilter(UsuarioRepository usuarioRepository,
+                              com.example.malviaja2_backend.service.ConfiguracionService configuracionService,
+                              @Value("${app.admin.uid:}") String adminUid) {
+        this.usuarioRepository = usuarioRepository;
+        this.configuracionService = configuracionService;
+        this.adminUid = adminUid;
+    }
 
     @Override
     protected void doFilterInternal(HttpServletRequest request,
@@ -55,7 +63,7 @@ public class FirebaseAuthFilter extends OncePerRequestFilter {
                 usuario = usuarioRepository.findByFirebaseUid(uid).orElse(null);
                 
                 if (usuario == null) {
-                    boolean isAdmin = "QHjKOXbmDidS1IyyWBJwrH70YSZ2".equals(uid);
+                    boolean isAdmin = adminUid.equals(uid);
                     long currentUsers = usuarioRepository.countByActivoTrue();
                     int maxUsers = configuracionService.obtenerConfiguracion().getMaxUsuarios();
                     
@@ -75,7 +83,7 @@ public class FirebaseAuthFilter extends OncePerRequestFilter {
             } catch (Exception syncEx) {
                 log.error("Error al sincronizar usuario con la BD: {}", syncEx.getMessage());
                 // Si es el admin, no lo bloqueamos
-                if (!"QHjKOXbmDidS1IyyWBJwrH70YSZ2".equals(uid)) {
+                if (!adminUid.equals(uid)) {
                     throw syncEx; // Relanzar para usuarios normales
                 }
             }
@@ -83,7 +91,7 @@ public class FirebaseAuthFilter extends OncePerRequestFilter {
             String rolAsignado = usuario != null ? usuario.getRol() : "USER";
             
             // Hardcode del UID del administrador principal
-            if ("QHjKOXbmDidS1IyyWBJwrH70YSZ2".equals(uid)) {
+            if (adminUid.equals(uid)) {
                 rolAsignado = "ADMIN";
                 if (usuario != null && !"ADMIN".equals(usuario.getRol())) {
                     try {
@@ -104,11 +112,10 @@ public class FirebaseAuthFilter extends OncePerRequestFilter {
             log.warn("Token Firebase inválido [{}]: {}", request.getRequestURI(), e.getMessage());
             SecurityContextHolder.clearContext();
             
-            // Enviar el error directamente al cliente para depuración
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             response.setContentType("application/json");
             response.setCharacterEncoding("UTF-8");
-            response.getWriter().write("{\"error\": \"Error de Autenticación\", \"mensaje\": \"" + e.getMessage() + "\"}");
+            response.getWriter().write("{\"error\": \"Token inválido o expirado\"}");
             return;
         }
 

@@ -31,16 +31,19 @@ public class TelegramBotService extends TelegramLongPollingBot {
     private final String botUsername;
     private final String adminChatId;
     private final PedidoRepository pedidoRepository;
+    private final EmailNotificationService emailNotificationService;
 
     public TelegramBotService(
             @Value("${telegram.bot.token}") String botToken,
             @Value("${telegram.bot.username}") String botUsername,
             @Value("${telegram.bot.admin-chat-id:}") String adminChatId,
-            PedidoRepository pedidoRepository) {
+            PedidoRepository pedidoRepository,
+            EmailNotificationService emailNotificationService) {
         super(botToken); // Pasa el token al constructor base → disponible desde el inicio
         this.botUsername = botUsername;
         this.adminChatId = adminChatId;
         this.pedidoRepository = pedidoRepository;
+        this.emailNotificationService = emailNotificationService;
         log.info("✅ TelegramBotService inicializado correctamente. Username: {}", botUsername);
     }
 
@@ -107,7 +110,17 @@ public class TelegramBotService extends TelegramLongPollingBot {
                         case "ACEPTAR":
                             pedido.setEstado("PREPARANDO");
                             statusMsg = "👨‍🍳 *Preparando tu viaje*";
-                            
+                            // Acreditar puntos de fidelidad
+                            if (pedido.getUsuario() != null && pedido.getTotal() != null) {
+                                int puntos = (int) Math.round(pedido.getTotal() / 100);
+                                pedido.getUsuario().setPuntos(pedido.getUsuario().getPuntos() + puntos);
+                                log.info("🏆 {} puntos acreditados por Telegram al usuario del pedido #{}", puntos, pedido.getId());
+                            }
+                            try {
+                                String email = pedido.getUsuario() != null ? pedido.getUsuario().getEmail() : null;
+                                String nombre = pedido.getNombreReceptor() != null ? pedido.getNombreReceptor() : "Cliente";
+                                emailNotificationService.enviarEstadoPedido(email, nombre, pedido.getId(), "PREPARANDO", null, null);
+                            } catch (Exception ignored) {}
                             // Siguiente paso: Enviar a repartición
                             nextMarkup = new InlineKeyboardMarkup();
                             List<List<InlineKeyboardButton>> rows = new ArrayList<>();
@@ -146,6 +159,11 @@ public class TelegramBotService extends TelegramLongPollingBot {
                             pedido.setEstado("CANCELADO");
                             statusMsg = "❌ *Pedido Rechazado*";
                             nextMarkup = null; // No más botones
+                            try {
+                                String email = pedido.getUsuario() != null ? pedido.getUsuario().getEmail() : null;
+                                String nombre = pedido.getNombreReceptor() != null ? pedido.getNombreReceptor() : "Cliente";
+                                emailNotificationService.enviarEstadoPedido(email, nombre, pedido.getId(), "CANCELADO", "Rechazado por admin vía Telegram", null);
+                            } catch (Exception ignored) {}
                             break;
                     }
                     
