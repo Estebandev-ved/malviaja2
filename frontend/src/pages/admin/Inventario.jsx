@@ -33,6 +33,7 @@ const Inventario = () => {
   useEffect(() => {
     fetchProductos();
     setMovimientos(JSON.parse(localStorage.getItem(KEY_MOVIMIENTOS) || '[]'));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const guardarMovimiento = (producto, stockAnterior, stockNuevo) => {

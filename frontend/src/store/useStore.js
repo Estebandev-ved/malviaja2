@@ -197,29 +197,28 @@ const useStore = create((set, get) => {
   },
   
   fetchProductos: async () => {
-    // Si no hay productos, mostramos loading. Si ya hay, actualizamos en 2do plano sin bloquear UI
-    if (get().productos.length === 0) {
-      set({ loading: true, error: null });
-    } else {
-      set({ error: null }); // background refresh
-    }
+    set({ loading: true, error: null });
     try {
       const response = await apiFetch('/api/productos');
       if (!response.ok) throw new Error('Error al cargar productos');
       const data = await response.json();
       set({ productos: data, loading: false });
     } catch (error) {
-      set({ error: error.message, loading: false });
-      
-      console.warn('Usando datos de prueba por fallo en el backend:', error.message);
-      set({
-        productos: [
-          { id: 1, nombre: 'Brownie Clásico', precio: 15000, dosis: 'Media', descripcion: 'Chocolate belga, dosis perfecta para relajarse.' },
-          { id: 2, nombre: 'Brownie Espacial', precio: 20000, dosis: 'Alta', descripcion: 'Doble chocolate, recomendado para usuarios experimentados.' },
-          { id: 3, nombre: 'Blondie Caramelo', precio: 18000, dosis: 'Media-Alta', descripcion: 'Brownie de chocolate blanco con nueces y caramelo.' }
-        ],
-        loading: false
-      });
+      console.warn('No se pudieron cargar productos del backend:', error.message);
+      // Solo usar fallback si NO hay datos en el store y falló la llamada
+      const current = get().productos;
+      if (current.length === 0) {
+        set({
+          productos: [
+            { id: 1, nombre: 'Brownie Clásico', precio: 15000, dosis: 'Media', stock: 10, descripcion: 'Chocolate belga, dosis perfecta para relajarse.' },
+            { id: 2, nombre: 'Brownie Espacial', precio: 20000, dosis: 'Alta', stock: 10, descripcion: 'Doble chocolate, recomendado para usuarios experimentados.' },
+            { id: 3, nombre: 'Blondie Caramelo', precio: 18000, dosis: 'Media-Alta', stock: 10, descripcion: 'Brownie de chocolate blanco con nueces y caramelo.' }
+          ],
+          loading: false
+        });
+      } else {
+        set({ error: error.message, loading: false });
+      }
     }
   }
   };
