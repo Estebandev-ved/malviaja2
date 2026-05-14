@@ -1,10 +1,9 @@
 import { Link } from 'react-router-dom';
-import { Star, Target, Sparkles, FlaskConical, Clock, ShieldCheck, Zap, Lock, Percent, Timer, Megaphone, Trophy, Gift, ShoppingBag } from 'lucide-react';
+import { Star, Target, Sparkles, FlaskConical, Clock, ShieldCheck, Zap, Lock, Percent, Timer, Megaphone, Trophy, Gift, ShoppingBag, Users, CheckCircle2, Crown, BadgeCheck, ArrowUpRight, Package, Info } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import useStore from '../store/useStore';
+import { apiFetch, authFetch } from '../api';
 import './Home.css';
-
-const NOTICIAS_STORAGE_KEY = 'admin_noticias';
 
 const TIPO_ICONOS = {
   sorteo: { icon: Trophy, color: '#ff9800', label: '🎟️ Sorteo' },
@@ -15,16 +14,82 @@ const TIPO_ICONOS = {
 
 const Home = () => {
   const user = useStore(state => state.user);
+  const authLoading = useStore(state => state.authLoading);
+  const puntosTotales = useStore(state => state.puntosTotales);
+  const rachaDias = useStore(state => state.rachaDias);
+  const totalPedidos = useStore(state => state.totalPedidos);
   const [noticias, setNoticias] = useState([]);
   const heroRef = useRef(null);
   const mascotRef = useRef(null);
   const blobRef = useRef(null);
+  const [promoConfig, setPromoConfig] = useState(null);
+  const [recentPedidos, setRecentPedidos] = useState([]);
+  const [loadingPedidos, setLoadingPedidos] = useState(false);
+  const [toast, setToast] = useState({ show: false, message: '', type: 'info' });
+
+  const showToast = (message, type = 'info') => {
+    setToast({ show: true, message, type });
+    setTimeout(() => setToast({ show: false, message: '', type: 'info' }), 3500);
+  };
+
+  const tiers = [
+    { id: 'bronce', label: 'Bronce', min: 0, max: 1999 },
+    { id: 'plata', label: 'Plata', min: 2000, max: 4999 },
+    { id: 'oro', label: 'Oro', min: 5000, max: 7999 },
+    { id: 'vip', label: 'VIP', min: 8000, max: Infinity }
+  ];
+  const puntos = Number.isFinite(Number(puntosTotales)) ? Number(puntosTotales) : 0;
+  const currentTier = tiers.find(t => puntos >= t.min && puntos <= t.max) || tiers[0];
+  const nextTier = tiers.find(t => puntos < t.min);
+  const progressToNext = nextTier ? Math.min(100, Math.round(((puntos - currentTier.min) / (nextTier.min - currentTier.min)) * 100)) : 100;
 
   useEffect(() => {
-    try {
-      const stored = JSON.parse(localStorage.getItem(NOTICIAS_STORAGE_KEY) || '[]');
-      setNoticias(stored.filter(n => n.activo).slice(0, 6));
-    } catch {}
+    const loadNoticias = async () => {
+      try {
+        const res = await apiFetch('/api/noticias/publicas');
+        if (res.ok) {
+          const data = await res.json();
+          setNoticias(data.slice(0, 6));
+        }
+      } catch (e) {
+        console.warn('No se pudo cargar noticias publicas:', e.message);
+      }
+    };
+    loadNoticias();
+  }, []);
+
+  useEffect(() => {
+    const loadPedidos = async () => {
+      if (!user?.uid) return;
+      setLoadingPedidos(true);
+      try {
+        const res = await authFetch(`/api/pedidos/usuario/${user.uid}`);
+        if (res.ok) {
+          const data = await res.json();
+          setRecentPedidos(Array.isArray(data) ? data.slice(0, 4) : []);
+        }
+      } catch (e) {
+        console.warn('No se pudo cargar pedidos recientes:', e.message);
+      } finally {
+        setLoadingPedidos(false);
+      }
+    };
+    loadPedidos();
+  }, [user?.uid]);
+
+  useEffect(() => {
+    const loadPromo = async () => {
+      try {
+        const res = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:8080'}/api/configuracion/publica`);
+        if (res.ok) {
+          const data = await res.json();
+          setPromoConfig(data);
+        }
+      } catch (e) {
+        console.warn('No se pudo cargar promo publica:', e.message);
+      }
+    };
+    loadPromo();
   }, []);
 
   useEffect(() => {
@@ -93,6 +158,25 @@ const Home = () => {
     e.currentTarget.style.transform = 'perspective(1000px) rotateX(0deg) rotateY(0deg)';
   };
 
+  const handlePromoClick = (e) => {
+    e.preventDefault();
+    
+    if (!user) {
+      showToast("Para aprovechar la promoción, primero debes solicitar acceso al club.", "warning");
+      setTimeout(() => window.location.href = '/login', 2500);
+      return;
+    }
+
+    if (user.primerCompraRealizada) {
+      showToast("Ya no eres viajero nuevo. ¡Ve al catálogo normal!", "info");
+      setTimeout(() => window.location.href = '/comestibles', 2000);
+      return;
+    }
+
+    showToast("¡Eres elegible! Recuerda añadir 2 productos al carrito para aplicar el 2x1.", "success");
+    setTimeout(() => window.location.href = '/comestibles?promo=2x1', 2500);
+  };
+
   return (
     <div className="home">
       {/* Hero Section */}
@@ -119,45 +203,67 @@ const Home = () => {
               <Sparkles size={16} color="var(--color-secondary)" />
               <span>NO vendemos drogas, vendemos <span style={{color: 'var(--color-secondary)', fontWeight: '800'}}>postres</span></span>
             </div>
-            <h1
-              className="hero__title"
-              data-typewriter-prefix="Siente el "
-              data-typewriter-highlight="Viaje"
-              data-typewriter-suffix=". Disfruta el Sabor."
-            >
-              Siente el <span className="text-secondary">Viaje</span>. Disfruta el Sabor.
-            </h1>
-            <p className="hero__subtitle">
-              Brownies cannábicos premium hechos con los mejores ingredientes y la dosis perfecta para una experiencia inigualable, totalmente controlada y segura.
-            </p>
+            {authLoading ? (
+              <>
+                <h1 className="hero__title">
+                  Cargando tu <span className="text-secondary">Club</span>...
+                </h1>
+                <p className="hero__subtitle">
+                  Estamos preparando tu panel y beneficios.
+                </p>
+              </>
+            ) : user ? (
+              <>
+                <h1
+                  className="hero__title"
+                  data-typewriter-prefix="Bienvenido al "
+                  data-typewriter-highlight="Club"
+                  data-typewriter-suffix={`, ${user.displayName || 'Viajero'}.`}
+                >
+                  Bienvenido al <span className="text-secondary">Club</span>, {user.displayName || 'Viajero'}.
+                </h1>
+                <p className="hero__subtitle">
+                  Aqui estan tus beneficios, recompensas y pedidos. Usa los botones para ir directo a lo que necesitas.
+                </p>
+                <div className="hero__benefits">
+                  <div className="hero__benefit">
+                    <Sparkles size={16} color="var(--color-secondary)" />
+                    <span>Beneficios y promos activas para socios.</span>
+                  </div>
+                  <div className="hero__benefit">
+                    <Star size={16} color="var(--color-secondary)" />
+                    <span>Puntos de vuelo y recompensas acumuladas.</span>
+                  </div>
+                  <div className="hero__benefit">
+                    <ShoppingBag size={16} color="var(--color-secondary)" />
+                    <span>Acceso al catalogo premium y seguimiento de pedidos.</span>
+                  </div>
+                </div>
+              </>
+            ) : (
+              <>
+                <h1
+                  className="hero__title"
+                  data-typewriter-prefix="Siente el "
+                  data-typewriter-highlight="Viaje"
+                  data-typewriter-suffix=". Disfruta el Sabor."
+                >
+                  Siente el <span className="text-secondary">Viaje</span>. Disfruta el Sabor.
+                </h1>
+                <p className="hero__subtitle">
+                  Brownies cannabicos premium hechos con los mejores ingredientes y la dosis perfecta para una experiencia inigualable, totalmente controlada y segura.
+                </p>
+              </>
+            )}
             <div className="hero__actions" data-reveal>
-              {user ? (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', width: '100%' }}>
-                  <div style={{
-                    background: 'linear-gradient(135deg, rgba(251,192,45,0.12), rgba(251,192,45,0.04))',
-                    border: '1px solid rgba(251,192,45,0.25)',
-                    borderRadius: '16px', padding: '1.25rem 1.5rem',
-                    backdropFilter: 'blur(10px)',
-                    textAlign: 'center'
-                  }}>
-                    <div style={{ fontSize: '0.8rem', color: 'var(--color-secondary)', fontWeight: 700, letterSpacing: '2px', textTransform: 'uppercase', marginBottom: '0.25rem' }}>
-                      👑 Bienvenido al Club
-                    </div>
-                    <div style={{ fontSize: 'clamp(1rem, 3vw, 1.3rem)', color: '#fff', fontWeight: 'bold' }}>
-                      {user.displayName || 'Miembro'}
-                    </div>
-                    <p style={{ fontSize: '0.85rem', color: 'rgba(255,255,255,0.7)', margin: '0.4rem 0 0' }}>
-                      Explora nuestro catálogo premium y tus beneficios exclusivos.
-                    </p>
-                  </div>
-                  <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
-                    <Link to="/comestibles" className="btn btn--primary hero__btn" data-magnetic="true" data-magnetic-strength="0.2" style={{ flex: 1 }}>
-                      <ShoppingBag size={20} /> Ir al Catálogo
-                    </Link>
-                    <Link to="/perfil" className="btn btn--secondary hero__btn" data-magnetic="true" data-magnetic-strength="0.14" style={{ flex: 1 }}>
-                      Mis Beneficios
-                    </Link>
-                  </div>
+              {authLoading ? null : user ? (
+                <div className="hero__actions-group">
+                  <Link to="/comestibles" className="btn btn--primary hero__btn" data-magnetic="true" data-magnetic-strength="0.2">
+                    <ShoppingBag size={20} /> Ir al Catálogo
+                  </Link>
+                  <Link to="/perfil" className="btn btn--secondary hero__btn" data-magnetic="true" data-magnetic-strength="0.14">
+                    Mis Beneficios
+                  </Link>
                 </div>
               ) : (
                 <>
@@ -190,58 +296,94 @@ const Home = () => {
 
       {/* Club News Section (logged-in users) o Exclusivity (guests) */}
       {user ? (
-        <section style={{ 
-          background: 'linear-gradient(135deg, #121212 0%, #1a1a1a 100%)', 
-          color: '#fff', 
-          borderTop: '1px solid rgba(255,215,0,0.2)',
-          borderBottom: '1px solid rgba(255,215,0,0.2)',
-          position: 'relative',
-          overflow: 'hidden',
-          padding: '5rem 0'
-        }}>
-          <div style={{ position: 'absolute', top: '-100px', right: '-100px', width: '300px', height: '300px', background: 'var(--color-secondary)', filter: 'blur(150px)', opacity: '0.12' }}></div>
-          <div style={{ position: 'absolute', bottom: '-100px', left: '-100px', width: '300px', height: '300px', background: 'var(--color-primary)', filter: 'blur(150px)', opacity: '0.12' }}></div>
-
-          <div className="container" style={{ position: 'relative', zIndex: 1 }}>
-            <div style={{ textAlign: 'center', marginBottom: '3rem' }}>
-              <div style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '70px', height: '70px', borderRadius: '50%', background: 'rgba(255,215,0,0.1)', border: '1px solid rgba(255,215,0,0.3)', marginBottom: '1rem' }}>
-                <Megaphone size={36} color="var(--color-secondary)" />
+        <section className="member-hub">
+          <div className="member-hub__glow"></div>
+          <div className="container member-hub__container">
+            <div className="member-hub__header">
+              <div>
+                <span className="member-hub__eyebrow">Panel de socios</span>
+                <h2>Todo tu viaje en un solo lugar</h2>
+                <p>Administra beneficios, pedidos y recompensas sin salir del club.</p>
               </div>
-              <h2 style={{ color: '#fff', fontWeight: '900', letterSpacing: '2px', textTransform: 'uppercase', fontSize: 'clamp(1.5rem, 4vw, 2.2rem)', marginBottom: '0.5rem' }}>
-                Novedades del <span style={{ color: 'var(--color-secondary)' }}>Club</span>
-              </h2>
-              <p style={{ color: '#b0b0b0', fontSize: '1rem' }}>Mantente al día con todo lo que estamos preparando para ti.</p>
+              <Link to="/perfil" className="member-hub__cta">
+                Ir a Beneficios <ArrowUpRight size={18} />
+              </Link>
             </div>
 
-            {noticias.length === 0 ? (
-              <div style={{ textAlign: 'center', padding: '2rem' }}>
-                <Sparkles size={48} style={{ opacity: 0.3, marginBottom: '1rem' }} />
-                <p style={{ color: '#666' }}>Pronto tendremos novedades. Vuelve pronto.</p>
+            <div className="member-hub__grid">
+              <div className="member-card member-card--status">
+                <div className="member-card__title">
+                  <Crown size={20} /> Estado del Club
+                </div>
+                <div className="member-card__metric">
+                  <span className="member-card__value">{puntos.toLocaleString()}</span>
+                  <span className="member-card__label">Puntos de vuelo</span>
+                </div>
+                <div className="member-card__tier">
+                  <span className="member-card__tier-label">Nivel {currentTier.label}</span>
+                  <div className="member-card__progress">
+                    <div className="member-card__progress-fill" style={{ width: `${progressToNext}%` }}></div>
+                  </div>
+                  <span className="member-card__tier-next">
+                    {nextTier ? `Faltan ${Math.max(0, nextTier.min - puntos).toLocaleString()} pts para ${nextTier.label}` : 'Nivel maximo alcanzado'}
+                  </span>
+                </div>
+                <div className="member-card__row">
+                  <span>Racha activa</span>
+                  <strong>{rachaDias || 0} dias</strong>
+                </div>
+                <div className="member-card__row">
+                  <span>Pedidos totales</span>
+                  <strong>{totalPedidos || recentPedidos.length || 0}</strong>
+                </div>
               </div>
-            ) : (
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1.25rem' }}>
-                {noticias.map(n => {
-                  const tipo = TIPO_ICONOS[n.tipo] || TIPO_ICONOS.general;
-                  const Icon = tipo.icon;
-                  return (
-                    <div key={n.id} data-reveal style={{ background: 'rgba(255,255,255,0.04)', padding: '1.5rem', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.08)', backdropFilter: 'blur(10px)' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', marginBottom: '0.75rem' }}>
-                        <Icon size={20} color={tipo.color} />
-                        <span style={{ fontSize: '0.75rem', color: tipo.color, background: `${tipo.color}15`, padding: '0.15rem 0.5rem', borderRadius: '4px', fontWeight: 600 }}>{tipo.label}</span>
-                        <span style={{ fontSize: '0.7rem', color: '#666', marginLeft: 'auto' }}>{n.fecha}</span>
-                      </div>
-                      <h3 style={{ color: '#fff', fontSize: '1.1rem', fontWeight: '700', marginBottom: '0.5rem' }}>{n.titulo}</h3>
-                      {n.descripcion && <p style={{ color: '#b0b0b0', fontSize: '0.9rem', lineHeight: '1.5', margin: 0 }}>{n.descripcion}</p>}
-                    </div>
-                  );
-                })}
-              </div>
-            )}
 
-            <div style={{ textAlign: 'center', marginTop: '2.5rem' }}>
-              <Link to="/perfil" className="btn btn--secondary" style={{ padding: '0.9rem 2.5rem', fontSize: '1rem', fontWeight: 'bold', borderRadius: '50px' }}>
-                Ir a Mi Perfil
-              </Link>
+              <div className="member-card member-card--actions">
+                <div className="member-card__title">
+                  <BadgeCheck size={20} /> Accesos rapidos
+                </div>
+                <div className="member-card__actions">
+                  <Link to="/comestibles" className="member-card__action">
+                    <ShoppingBag size={18} /> Catalogo premium
+                  </Link>
+                  <Link to="/perfil" className="member-card__action">
+                    <Star size={18} /> Mis recompensas
+                  </Link>
+                  <Link to="/mis-pedidos" className="member-card__action">
+                    <Package size={18} /> Mis pedidos
+                  </Link>
+                  <Link to="/perfil" className="member-card__action">
+                    <Users size={18} /> Invitar amigos
+                  </Link>
+                </div>
+                <div className="member-card__note">Todo lo de tu cuenta en un solo flujo.</div>
+              </div>
+
+
+
+              <div className="member-card member-card--orders">
+                <div className="member-card__title">
+                  <Package size={20} /> Ultimos pedidos
+                </div>
+                {loadingPedidos ? (
+                  <p className="member-card__muted">Cargando pedidos...</p>
+                ) : recentPedidos.length === 0 ? (
+                  <p className="member-card__muted">Aun no tienes pedidos. Empieza tu viaje hoy.</p>
+                ) : (
+                  <div className="member-card__list">
+                    {recentPedidos.map((pedido, idx) => (
+                      <div key={pedido?.id ?? `pedido-${idx}`} className="member-card__item">
+                        <div>
+                          <strong>{pedido?.referencia || `Pedido #${pedido?.id || ''}`}</strong>
+                          <span>{pedido?.estado || 'En proceso'}</span>
+                        </div>
+                        <div className="member-card__amount">${Number(pedido?.total || 0).toLocaleString()}</div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+                <Link to="/perfil" className="member-card__link">Ver historial completo</Link>
+              </div>
             </div>
           </div>
         </section>
@@ -258,7 +400,7 @@ const Home = () => {
           <div style={{ position: 'absolute', top: '-100px', left: '-100px', width: '300px', height: '300px', background: 'var(--color-secondary)', filter: 'blur(150px)', opacity: '0.15' }}></div>
           <div style={{ position: 'absolute', bottom: '-100px', right: '-100px', width: '300px', height: '300px', background: 'var(--color-primary)', filter: 'blur(150px)', opacity: '0.15' }}></div>
 
-          <div className="container" style={{ maxWidth: '800px', position: 'relative', zIndex: 1 }}>
+          <div className="container" style={{ maxWidth: '900px', position: 'relative', zIndex: 1 }}>
             <div style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '80px', height: '80px', borderRadius: '50%', background: 'rgba(255,215,0,0.1)', border: '1px solid rgba(255,215,0,0.3)', marginBottom: '1.5rem' }}>
               <Lock size={40} color="var(--color-secondary)" />
             </div>
@@ -269,6 +411,8 @@ const Home = () => {
               Malviaja2 no es para todos. Somos un club confidencial y estrictamente reservado. 
               Actualmente nuestro aforo está limitado a un <strong>máximo de 50 socios activos</strong>.
             </p>
+
+
 
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '2rem', textAlign: 'left', marginBottom: '3.5rem' }}>
               <div data-tilt data-reveal style={{ background: 'rgba(255,255,255,0.03)', padding: '2rem', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.08)', backdropFilter: 'blur(10px)', transition: 'transform 0.3s ease', cursor: 'default' }}>
@@ -291,6 +435,101 @@ const Home = () => {
             <Link to="/login" className="btn btn--secondary" data-magnetic="true" data-magnetic-strength="0.18" style={{ padding: '1.2rem 3rem', fontSize: '1.1rem', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '1px', boxShadow: '0 10px 25px rgba(255,215,0,0.2)', borderRadius: '50px' }}>
               Verificar Disponibilidad
             </Link>
+          </div>
+        </section>
+      )}
+
+      {/* Sección Promocional Dedicada */}
+      {promoConfig?.promo2x1Enabled && (
+        <section className="active-promo" style={{
+          background: 'linear-gradient(135deg, rgba(251, 192, 45, 0.1) 0%, rgba(251, 192, 45, 0.02) 100%)',
+          borderTop: '1px solid rgba(251, 192, 45, 0.3)',
+          borderBottom: '1px solid rgba(251, 192, 45, 0.3)',
+          padding: '4rem 0',
+          position: 'relative',
+          overflow: 'hidden'
+        }}>
+          <div style={{ position: 'absolute', top: '0', right: '0', width: '300px', height: '300px', background: 'var(--color-secondary)', filter: 'blur(150px)', opacity: '0.1' }}></div>
+          <div className="container" style={{ position: 'relative', zIndex: 1, textAlign: 'center' }}>
+            {user?.primerCompraRealizada ? (
+              <>
+                <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', background: 'rgba(76, 175, 80, 0.15)', border: '1px solid #4caf50', color: '#4caf50', padding: '0.5rem 1rem', borderRadius: '50px', fontWeight: 'bold', marginBottom: '1.5rem', textTransform: 'uppercase', letterSpacing: '1px', fontSize: '0.9rem' }}>
+                  <CheckCircle2 size={18} /> ¡Beneficio de bienvenida usado!
+                </div>
+                
+                <h2 style={{ fontSize: '2.5rem', fontWeight: '900', color: 'var(--color-primary-dark)', marginBottom: '1rem' }}>
+                  Ya eres parte del Club
+                </h2>
+                
+                <p style={{ fontSize: '1.1rem', color: 'var(--color-text-light)', maxWidth: '600px', margin: '0 auto 2.5rem', lineHeight: '1.6' }}>
+                  Ya has aprovechado tu beneficio de primera compra. Sigue disfrutando de nuestro catálogo regular y acumula puntos en cada pedido.
+                </p>
+
+                <div style={{ display: 'flex', justifyContent: 'center' }}>
+                  <button onClick={() => window.location.href = '/comestibles'} className="btn btn--secondary" data-magnetic="true" data-magnetic-strength="0.15" style={{
+                    padding: '1.2rem 3.5rem',
+                    fontSize: '1.2rem',
+                    fontWeight: 'bold',
+                    textTransform: 'uppercase',
+                    boxShadow: '0 8px 25px rgba(251, 192, 45, 0.4)',
+                    borderRadius: '50px',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '0.5rem',
+                    cursor: 'pointer',
+                    border: 'none'
+                  }}>
+                    <ShoppingBag size={22} /> Ir al Catálogo Regular
+                  </button>
+                </div>
+              </>
+            ) : (
+              <>
+                <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', background: 'rgba(251, 192, 45, 0.15)', border: '1px solid var(--color-secondary)', color: 'var(--color-secondary)', padding: '0.5rem 1rem', borderRadius: '50px', fontWeight: 'bold', marginBottom: '1.5rem', textTransform: 'uppercase', letterSpacing: '1px', fontSize: '0.9rem' }}>
+                  <Gift size={18} /> ¡Promo Activa por Tiempo Limitado!
+                </div>
+                
+                <h2 style={{ fontSize: '2.5rem', fontWeight: '900', color: 'var(--color-primary-dark)', marginBottom: '1rem' }}>
+                  {promoConfig.promo2x1Titulo || 'Lanzamiento 2x1 en Todo el Catálogo'}
+                </h2>
+                
+                <p style={{ fontSize: '1.1rem', color: 'var(--color-text-light)', maxWidth: '600px', margin: '0 auto 2.5rem', lineHeight: '1.6' }}>
+                  {promoConfig.promo2x1Subtitulo || 'Aprovecha nuestra promo exclusiva. Válido solo para usuarios seleccionados que realicen su compra a través de la web.'}
+                </p>
+
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', alignItems: 'center', justifyContent: 'center' }}>
+                  <button onClick={handlePromoClick} className="btn btn--secondary" data-magnetic="true" data-magnetic-strength="0.15" style={{
+                    padding: '1.2rem 3.5rem',
+                    fontSize: '1.2rem',
+                    fontWeight: 'bold',
+                    textTransform: 'uppercase',
+                    boxShadow: '0 8px 25px rgba(251, 192, 45, 0.4)',
+                    borderRadius: '50px',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '0.5rem',
+                    cursor: 'pointer',
+                    border: 'none'
+                  }}>
+                    <ShoppingBag size={22} /> Aprovechar Promo y Comprar
+                  </button>
+                  
+                  <div style={{ fontSize: '0.9rem', color: '#b0b0b0', marginTop: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.4rem', background: 'rgba(0,0,0,0.2)', padding: '0.4rem 0.8rem', borderRadius: '50px', border: '1px solid rgba(255,255,255,0.05)' }}>
+                    <Info size={16} color="var(--color-secondary)" /> <span>Agrega <strong>2 productos</strong> al carrito al mismo tiempo; el de menor valor sale GRATIS.</span>
+                  </div>
+                  <div style={{ fontSize: '0.85rem', color: 'var(--color-text-light)', marginTop: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+                    <Timer size={14} color="#ff5252" />
+                    <span>La promo se cierra al llegar a los {promoConfig.promo2x1MaxUsuarios || 20} cupos habilitados.</span>
+                  </div>
+                  
+                  {promoConfig.promo2x1GroupLink && (
+                    <a href={promoConfig.promo2x1GroupLink} target="_blank" rel="noreferrer" style={{ marginTop: '0.5rem', fontSize: '0.9rem', color: 'var(--color-primary)', textDecoration: 'underline', fontWeight: '600' }}>
+                      Unirse al grupo de WhatsApp oficial
+                    </a>
+                  )}
+                </div>
+              </>
+            )}
           </div>
         </section>
       )}
@@ -362,6 +601,29 @@ const Home = () => {
           </div>
         </div>
       </section>
+      {/* Toast Notification */}
+      <div style={{
+        position: 'fixed',
+        bottom: '2rem',
+        left: '50%',
+        transform: toast.show ? 'translate(-50%, 0)' : 'translate(-50%, 150%)',
+        opacity: toast.show ? 1 : 0,
+        background: toast.type === 'warning' ? '#ff9800' : toast.type === 'success' ? '#4caf50' : 'var(--color-primary-dark)',
+        color: 'white',
+        padding: '1rem 2rem',
+        borderRadius: '50px',
+        boxShadow: '0 10px 40px rgba(0,0,0,0.3)',
+        zIndex: 9999,
+        fontWeight: 'bold',
+        display: 'flex',
+        alignItems: 'center',
+        gap: '0.75rem',
+        pointerEvents: toast.show ? 'auto' : 'none',
+        transition: 'all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55)'
+      }}>
+        <Info size={20} color="white" />
+        <span style={{ fontSize: '1.05rem', letterSpacing: '0.5px' }}>{toast.message}</span>
+      </div>
     </div>
   );
 };

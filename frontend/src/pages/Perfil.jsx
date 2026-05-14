@@ -16,6 +16,10 @@ const Perfil = () => {
   const { user, logout, puntosTotales, cuponesActivos, addPuntos, restarPuntos, addCupon, logrosObtenidos, addLogro, rachaDias, totalCanjes, setTotalCanjes, checkLogros } = useStore();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('recompensas');
+  const [darkMode, setDarkMode] = useState(() => {
+    if (typeof window === 'undefined') return false;
+    return localStorage.getItem('perfil_dark') === 'true';
+  });
   const [perfilDb, setPerfilDb] = useState(null);
 
   // Estados Locales UI Gamificación
@@ -61,6 +65,11 @@ const Perfil = () => {
     fetchPerfil();
   }, [user, navigate]);
 
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    localStorage.setItem('perfil_dark', darkMode ? 'true' : 'false');
+  }, [darkMode]);
+
   const handleLogout = async () => {
     await logout();
     navigate('/');
@@ -76,7 +85,7 @@ const Perfil = () => {
     // Simular reclamo exitoso
     setTimeout(() => {
       addPuntos(500);
-      setMensajePromo({ tipo: 'exito', texto: '¡Código validado! Has ganado 500 Puntos de Vuelo 🚀' });
+      setMensajePromo({ tipo: 'exito', texto: 'Codigo validado. Has ganado 500 Puntos de Vuelo.' });
       setCodigoPromo('');
       setTimeout(() => setMensajePromo(null), 4000);
     }, 1000);
@@ -111,7 +120,7 @@ const Perfil = () => {
 
   return (
     <div className="container py-8" style={{ paddingBottom: '4rem' }}>
-      <div className="perfil-layout">
+      <div className={`perfil-layout ${darkMode ? 'dark' : ''}`}>
         
         {/* Sidebar de Perfil */}
         <div className="perfil-sidebar">
@@ -131,11 +140,11 @@ const Perfil = () => {
               </h2>
               {(() => {
                 const niveles = [
-                  { nombre: 'Caminante', icono: '🥾', min: 0, max: 999 },
-                  { nombre: 'Turista', icono: '🗺️', min: 1000, max: 2999 },
-                  { nombre: 'Viajero', icono: '✈️', min: 3000, max: 5999 },
-                  { nombre: 'Explorador', icono: '🚀', min: 6000, max: 9999 },
-                  { nombre: 'Astronauta VIP', icono: '👑', min: 10000, max: Infinity },
+                  { nombre: 'Caminante', min: 0, max: 999 },
+                  { nombre: 'Turista', min: 1000, max: 2999 },
+                  { nombre: 'Viajero', min: 3000, max: 5999 },
+                  { nombre: 'Explorador', min: 6000, max: 9999 },
+                  { nombre: 'Astronauta VIP', min: 10000, max: Infinity },
                 ];
                 const nivelActual = niveles.reduce((prev, curr) => puntosTotales >= curr.min ? curr : prev, niveles[0]);
                 const idx = niveles.indexOf(nivelActual);
@@ -148,13 +157,12 @@ const Perfil = () => {
                 }
                 return (
                   <div style={{ marginTop: '0.75rem', background: 'var(--color-background)', padding: '1rem', borderRadius: 'var(--radius-lg)' }}>
-                    <div style={{ fontSize: '2rem' }}>{nivelActual.icono}</div>
                     <div style={{ fontWeight: 'bold', color: 'var(--color-primary-dark)', fontSize: '1rem', marginBottom: '0.25rem' }}>{nivelActual.nombre}</div>
                     {siguienteNivel && (
                       <>
                         <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.65rem', color: 'var(--color-text-light)', marginBottom: '0.25rem' }}>
                           <span>{puntosTotales.toLocaleString()} pts</span>
-                          <span>{siguienteNivel.icono} {siguienteNivel.min.toLocaleString()} pts</span>
+                          <span>{siguienteNivel.min.toLocaleString()} pts</span>
                         </div>
                         <div className="level-progress-track">
                           <div className="level-progress-fill" style={{ width: `${progreso}%` }} />
@@ -166,7 +174,7 @@ const Perfil = () => {
                     )}
                     {rachaDias > 0 && (
                       <div style={{ marginTop: '0.75rem', fontSize: '0.85rem', color: '#e65100', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-                        <Flame size={16} /> Racha de {rachaDias} días
+                        <Flame size={16} /> Racha de {rachaDias} dias
                       </div>
                     )}
                   </div>
@@ -175,7 +183,7 @@ const Perfil = () => {
 
               {perfilDb && perfilDb.activo === false && (
                 <div style={{ background: '#ffebee', color: '#c62828', padding: '0.75rem', borderRadius: '8px', fontSize: '0.85rem', marginTop: '1.5rem', textAlign: 'left', border: '1px solid #ffcdd2', lineHeight: '1.5' }}>
-                  ⚠️ <strong>Cuenta en Riesgo de Suspensión:</strong><br/>
+                  <strong>Cuenta en Riesgo de Suspension:</strong><br/>
                   Llevas más de 15 días inactivo. Haz un pedido mínimo de $15.000 para mantener tu membresía en el club Malviaja2 y evitar perder tus puntos.
                 </div>
               )}
@@ -310,13 +318,13 @@ const Perfil = () => {
                   <p style={{ opacity: 0.9, marginBottom: '1.5rem', lineHeight: '1.5' }}>Gana <strong>2,000 Puntos de Vuelo</strong> automáticos cada vez que un amigo haga su primera compra usando tu enlace personal.</p>
                 </div>
                 <div className="referidos-link-box" style={{ flex: '1 1 300px', background: 'rgba(0,0,0,0.2)', padding: '1.5rem', borderRadius: 'var(--radius-md)', textAlign: 'center' }}>
-                  <div style={{ fontSize: '0.9rem', opacity: 0.8, marginBottom: '0.5rem' }}>Tu enlace único de invitación:</div>
+                  <div style={{ fontSize: '0.9rem', opacity: 0.8, marginBottom: '0.5rem' }}>Tu enlace unico de invitacion (max 20 usos):</div>
                   <div style={{ padding: '1rem', background: 'white', color: 'var(--color-primary-dark)', borderRadius: 'var(--radius-sm)', fontWeight: 'bold', fontFamily: 'monospace', marginBottom: '1rem', fontSize: 'clamp(0.75rem, 2.5vw, 1rem)', wordBreak: 'break-all' }}>
-                    malviaja2.com/ref/{user.uid?.slice(0, 8) || 'user'}
+                    malviaja2.com/invitar/{user.uid?.slice(0, 8) || 'usuario'}
                   </div>
                   <button className="btn btn--secondary w-full" onClick={() => {
-                    navigator.clipboard.writeText(`https://malviaja2.com/ref/${user.uid?.slice(0,8) || 'user'}`);
-                    alert("Enlace copiado al portapapeles. ¡Mándaselo a tus amigos!");
+                    navigator.clipboard.writeText(`https://malviaja2.com/invitar/${user.uid?.slice(0,8) || 'usuario'}`);
+                    alert("Enlace copiado al portapapeles. Enviaselo a tus amigos!");
                   }}>Copiar Enlace</button>
                 </div>
               </div>
@@ -424,6 +432,15 @@ const Perfil = () => {
               </p>
               
               <div style={{ background: 'white', padding: '2rem', borderRadius: 'var(--radius-lg)', boxShadow: 'var(--shadow-sm)' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.75rem 1rem', borderRadius: 'var(--radius-md)', border: '1px solid rgba(0,0,0,0.08)', marginBottom: '1.5rem', background: 'rgba(0,0,0,0.03)' }}>
+                  <div>
+                    <strong>Modo oscuro</strong>
+                    <div style={{ fontSize: '0.8rem', color: 'var(--color-text-light)' }}>Activa un contraste mayor para lectura nocturna.</div>
+                  </div>
+                  <button type="button" className={`perfil-theme-toggle ${darkMode ? 'on' : ''}`} onClick={() => setDarkMode(!darkMode)} aria-label="Cambiar modo oscuro">
+                    <span className="perfil-theme-thumb" />
+                  </button>
+                </div>
                 <div className="info-item">
                   <label className="info-label">Nombre</label>
                   <div className="info-value">{perfilDb?.nombre || user.displayName || 'No registrado'}</div>

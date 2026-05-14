@@ -53,6 +53,8 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.GET, "/api/productos/*/resenas").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/productos/*/resenas/resumen").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/logros").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/configuracion/publica").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/noticias/publicas").permitAll()
                 .requestMatchers("/error").permitAll()
                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                 // Admin-only

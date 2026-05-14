@@ -104,7 +104,7 @@ const Dashboard = () => {
       {/* Últimos Pedidos Reales */}
       <div style={{ background: 'white', padding: '1.5rem', borderRadius: 'var(--radius-lg)', boxShadow: 'var(--shadow-sm)', marginTop: '2rem' }}>
         <h2 style={{ fontSize: '1.25rem', color: 'var(--color-primary-dark)', marginBottom: '1.5rem' }}>
-          📋 Últimos Pedidos ({pedidos.length})
+          Ultimos Pedidos ({pedidos.length})
         </h2>
         
         {pedidos.length === 0 ? (

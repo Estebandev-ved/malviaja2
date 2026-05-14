@@ -1,0 +1,66 @@
+Standard Commons Logging discovery in action with spring-jcl: please remove commons-logging.jar from classpath in order to avoid potential conflicts
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::                (v3.4.5)
+
+2026-05-13T21:59:35.397-05:00  INFO 59728 --- [           main] c.e.m.Malviaja2BackendApplication        : Starting Malviaja2BackendApplication v0.0.1-SNAPSHOT using Java 21.0.9 with PID 59728 (C:\Users\Lenovo\.gemini\antigravity\scratch\malviaja2\backend\target\malviaja2-backend-0.0.1-SNAPSHOT.jar started by Lenovo in C:\Users\Lenovo\.gemini\antigravity\scratch\malviaja2\backend)
+2026-05-13T21:59:35.401-05:00  INFO 59728 --- [           main] c.e.m.Malviaja2BackendApplication        : No active profile set, falling back to 1 default profile: "default"
+2026-05-13T21:59:37.752-05:00  INFO 59728 --- [           main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-05-13T21:59:37.916-05:00  INFO 59728 --- [           main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 147 ms. Found 8 JPA repository interfaces.
+2026-05-13T21:59:40.752-05:00  INFO 59728 --- [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port 8080 (http)
+2026-05-13T21:59:40.810-05:00  INFO 59728 --- [           main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2026-05-13T21:59:40.811-05:00  INFO 59728 --- [           main] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/10.1.40]
+2026-05-13T21:59:40.897-05:00  INFO 59728 --- [           main] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring embedded WebApplicationContext
+2026-05-13T21:59:40.898-05:00  INFO 59728 --- [           main] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 5377 ms
+Standard Commons Logging discovery in action with spring-jcl: please remove commons-logging.jar from classpath in order to avoid potential conflicts
+2026-05-13T21:59:41.483-05:00  INFO 59728 --- [           main] o.hibernate.jpa.internal.util.LogHelper  : HHH000204: Processing PersistenceUnitInfo [name: default]
+2026-05-13T21:59:41.743-05:00  INFO 59728 --- [           main] org.hibernate.Version                    : HHH000412: Hibernate ORM core version 6.6.13.Final
+2026-05-13T21:59:41.890-05:00  INFO 59728 --- [           main] o.h.c.internal.RegionFactoryInitiator    : HHH000026: Second-level cache disabled
+2026-05-13T21:59:42.693-05:00  INFO 59728 --- [           main] o.s.o.j.p.SpringPersistenceUnitInfo      : No LoadTimeWeaver setup: ignoring JPA class transformer
+2026-05-13T21:59:42.816-05:00  INFO 59728 --- [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
+2026-05-13T21:59:43.601-05:00  INFO 59728 --- [           main] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Added connection com.mysql.cj.jdbc.ConnectionImpl@1da53f4f
+2026-05-13T21:59:43.604-05:00  INFO 59728 --- [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
+2026-05-13T21:59:43.739-05:00  WARN 59728 --- [           main] org.hibernate.dialect.Dialect            : HHH000511: The 5.5.5 version for [org.hibernate.dialect.MySQLDialect] is no longer supported, hence certain features may not work properly. The minimum supported version is 8.0.0. Check the community dialects project for available legacy versions.
+2026-05-13T21:59:43.861-05:00  INFO 59728 --- [           main] org.hibernate.orm.connections.pooling    : HHH10001005: Database info:
+	Database JDBC URL [Connecting through datasource 'HikariDataSource (HikariPool-1)']
+	Database driver: undefined/unknown
+	Database version: 5.5.5
+	Autocommit mode: undefined/unknown
+	Isolation level: undefined/unknown
+	Minimum pool size: undefined/unknown
+	Maximum pool size: undefined/unknown
+2026-05-13T21:59:45.946-05:00  INFO 59728 --- [           main] o.h.e.t.j.p.i.JtaPlatformInitiator       : HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2026-05-13T21:59:46.158-05:00  INFO 59728 --- [           main] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'default'
+2026-05-13T21:59:46.741-05:00  INFO 59728 --- [           main] o.s.d.j.r.query.QueryEnhancerFactory     : Hibernate is in classpath; If applicable, HQL parser will be used.
+2026-05-13T21:59:48.128-05:00  INFO 59728 --- [           main] c.e.m.config.FirebaseConfig              : 🔍 Buscando archivo firebase-service-account.json...
+2026-05-13T21:59:48.129-05:00  INFO 59728 --- [           main] c.e.m.config.FirebaseConfig              : ✅ Encontrado en classpath.
+2026-05-13T21:59:50.037-05:00  INFO 59728 --- [           main] c.e.m.service.TelegramBotService         : ✅ TelegramBotService inicializado correctamente. Username: malviaja2_bot
+2026-05-13T21:59:51.751-05:00  WARN 59728 --- [           main] c.e.malviaja2_backend.config.BotConfig   : ⚠️ No se pudo registrar el bot de Telegram. Las notificaciones estarán desactivadas. Error: Error removing old webhook
+2026-05-13T21:59:51.967-05:00  INFO 59728 --- [           main] r$InitializeUserDetailsManagerConfigurer : Global AuthenticationManager configured with UserDetailsService bean with name inMemoryUserDetailsManager
+2026-05-13T21:59:53.870-05:00  WARN 59728 --- [           main] ConfigServletWebServerApplicationContext : Exception encountered during context initialization - cancelling refresh attempt: org.springframework.context.ApplicationContextException: Failed to start bean 'webServerStartStop'
+2026-05-13T21:59:53.873-05:00  INFO 59728 --- [           main] j.LocalContainerEntityManagerFactoryBean : Closing JPA EntityManagerFactory for persistence unit 'default'
+2026-05-13T21:59:53.877-05:00  INFO 59728 --- [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown initiated...
+2026-05-13T21:59:53.901-05:00  INFO 59728 --- [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown completed.
+2026-05-13T21:59:53.927-05:00  INFO 59728 --- [           main] .s.b.a.l.ConditionEvaluationReportLogger : 
+
+Error starting ApplicationContext. To display the condition evaluation report re-run your application with 'debug' enabled.
+2026-05-13T21:59:53.977-05:00 ERROR 59728 --- [           main] o.s.b.d.LoggingFailureAnalysisReporter   : 
+
+***************************
+APPLICATION FAILED TO START
+***************************
+
+Description:
+
+Web server failed to start. Port 8080 was already in use.
+
+Action:
+
+Identify and stop the process that's listening on port 8080 or configure this application to listen on another port.
+

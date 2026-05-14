@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Save, Bell, Truck, Store, Shield, Globe, CheckCircle2, AlertTriangle, Users } from 'lucide-react';
+import { Save, Bell, Truck, Store, Shield, Globe, CheckCircle2, AlertTriangle, Users, Gift } from 'lucide-react';
 import { authFetch } from '../../api';
 
 const Section = ({ title, icon, children }) => (
@@ -58,6 +58,13 @@ const ConfigAdmin = () => {
     ageGateEnabled: true,
     ageGateMinAge: 18,
     maintenanceMode: false,
+    // Promo 2x1 lanzamiento
+    promo2x1Enabled: false,
+    promo2x1MaxUsuarios: 20,
+    promo2x1GroupLink: '',
+    promo2x1Titulo: 'Lanzamiento 2x1',
+    promo2x1Subtitulo: 'Solo para las primeras 20 compras completadas de 20 usuarios unicos',
+    promo2x1Terminos: 'Promo 2x1 solo aplica en Brownie Fuerte de $15.000 COP (alta dosis/mayor miligramos).\nEl beneficio es 2 brownies por el precio de 1 (2x1) dentro de esa referencia.\nValido para 1 beneficio por cuenta.\nAplica solo en productos seleccionados de la promo.\nNo acumulable con otros cupones o promociones.\nSolo cuentan pedidos con estado ENTREGADO.\nSujeto a disponibilidad y verificacion de compra.\nEnvio no incluido salvo indicacion expresa.\nFinaliza automaticamente al completar 20 compras en 20 usuarios unicos.'
   });
 
   useEffect(() => {
@@ -140,6 +147,38 @@ const ConfigAdmin = () => {
         </div>
       </Section>
 
+      {/* SECCIÓN: PROMO LANZAMIENTO */}
+      <Section title="Promo Lanzamiento 2x1" icon={<Gift size={22} style={{ color: '#fbc02d' }} />}>
+        <Field label="Estado de la Promo">
+          <Toggle value={config.promo2x1Enabled} onChange={v => handleChange('promo2x1Enabled', v)} label={config.promo2x1Enabled ? 'Activa — Visible para los usuarios' : 'Inactiva — No se muestra en la web'} />
+        </Field>
+        {config.promo2x1Enabled && (
+          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', padding: '0.5rem 1rem', borderRadius: '999px', background: '#e8f5e9', color: '#2e7d32', fontWeight: 'bold', fontSize: '0.85rem', marginBottom: '1rem', border: '1px solid #a5d6a7' }}>
+            Activa — Se muestra en la web para todos los usuarios
+          </div>
+        )}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1.5rem' }}>
+          <Field label="Máximo de Usuarios" description="Se desactiva automáticamente al llegar a este número de compras completadas en usuarios únicos.">
+            <input type="number" value={config.promo2x1MaxUsuarios} onChange={e => handleChange('promo2x1MaxUsuarios', Number(e.target.value))} style={inputStyle} />
+          </Field>
+          <Field label="Link Grupo U" description="URL del grupo donde se comparte la promo.">
+            <input type="url" value={config.promo2x1GroupLink} onChange={e => handleChange('promo2x1GroupLink', e.target.value)} style={inputStyle} />
+          </Field>
+          <Field label="Titulo" description="Encabezado corto para la promo.">
+            <input type="text" value={config.promo2x1Titulo} onChange={e => handleChange('promo2x1Titulo', e.target.value)} style={inputStyle} />
+          </Field>
+          <Field label="Subtitulo" description="Frase secundaria visible en el banner.">
+            <input type="text" value={config.promo2x1Subtitulo} onChange={e => handleChange('promo2x1Subtitulo', e.target.value)} style={inputStyle} />
+          </Field>
+        </div>
+        <Field label="Condiciones de la promo" description="Cada linea se mostrara como un punto en la web.">
+          <textarea value={config.promo2x1Terminos} onChange={e => handleChange('promo2x1Terminos', e.target.value)} style={{ ...inputStyle, minHeight: '140px', resize: 'vertical' }} />
+        </Field>
+        <div style={{ background: '#fff8e1', padding: '0.75rem 1rem', borderRadius: '6px', fontSize: '0.85rem', color: '#8d6e63' }}>
+          Se desactiva automaticamente cuando el backend detecta {config.promo2x1MaxUsuarios || 20} compras completadas en usuarios unicos.
+        </div>
+      </Section>
+
       {/* SECCIÓN: TIENDA */}
       <Section title="Información de la Tienda" icon={<Store size={22} style={{ color: 'var(--color-primary)' }} />}>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1.5rem' }}>
@@ -182,7 +221,7 @@ const ConfigAdmin = () => {
           </Field>
         </div>
         <div style={{ background: '#e3f2fd', padding: '0.75rem 1rem', borderRadius: '6px', fontSize: '0.85rem', color: '#1565c0', marginTop: '0.5rem' }}>
-          💡 Cada pedido nuevo enviará una foto del comprobante con botones interactivos (Aceptar → Preparar → En Camino → Entregado).
+          Nota: Cada pedido nuevo enviara una foto del comprobante con botones interactivos (Aceptar, Preparar, En Camino, Entregado).
         </div>
       </Section>
 
@@ -217,7 +256,7 @@ const ConfigAdmin = () => {
         
         <div style={{ marginTop: '1.5rem', padding: '1rem', background: config.maintenanceMode ? '#fff3e0' : '#fafafa', borderRadius: '8px', border: config.maintenanceMode ? '2px solid #ff9800' : '1px solid #eee' }}>
           <Field label="Modo Mantenimiento" description="Cuando está activo, los clientes verán un mensaje de 'En Mantenimiento' y no podrán navegar por el sitio.">
-            <Toggle value={config.maintenanceMode} onChange={v => handleChange('maintenanceMode', v)} label={config.maintenanceMode ? '⚠️ ACTIVO — La tienda está en mantenimiento' : 'Desactivado — Tienda operando normalmente'} />
+            <Toggle value={config.maintenanceMode} onChange={v => handleChange('maintenanceMode', v)} label={config.maintenanceMode ? 'ACTIVO — La tienda esta en mantenimiento' : 'Desactivado — Tienda operando normalmente'} />
           </Field>
           {config.maintenanceMode && (
             <div style={{ background: '#fff9c4', color: '#f57f17', padding: '0.5rem 1rem', borderRadius: '6px', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '0.5rem', marginTop: '0.5rem' }}>
@@ -230,7 +269,7 @@ const ConfigAdmin = () => {
       {/* SECCIÓN: SEO/WEB */}
       <Section title="Web y SEO" icon={<Globe size={22} style={{ color: '#9c27b0' }} />}>
         <div style={{ background: '#f3e5f5', padding: '1rem', borderRadius: '8px', fontSize: '0.9rem', color: '#6a1b9a' }}>
-          <p style={{ margin: 0 }}>🚀 <strong>Estado del Sistema:</strong></p>
+          <p style={{ margin: 0 }}><strong>Estado del Sistema:</strong></p>
           <ul style={{ margin: '0.5rem 0 0', paddingLeft: '1.5rem' }}>
             <li>Frontend: React + Vite (localhost:5173)</li>
             <li>Backend: Spring Boot 4 (localhost:8080)</li>

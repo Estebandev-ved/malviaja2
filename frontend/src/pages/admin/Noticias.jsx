@@ -1,13 +1,12 @@
 import { useState, useEffect } from 'react';
 import { Plus, Trash2, Edit3, Save, X, Megaphone, Gift, Zap, Star, Trophy, Sparkles } from 'lucide-react';
-
-const STORAGE_KEY = 'admin_noticias';
+import { authFetch } from '../../api';
 
 const TIPOS = [
-  { value: 'sorteo', label: '🎟️ Sorteo', icon: Trophy },
-  { value: 'descuento', label: '🔥 Descuento', icon: Gift },
-  { value: 'nuevo_producto', label: '🍫 Nuevo Producto', icon: Zap },
-  { value: 'general', label: '📢 Novedad', icon: Megaphone },
+  { value: 'sorteo', label: 'Sorteo', icon: Trophy },
+  { value: 'descuento', label: 'Descuento', icon: Gift },
+  { value: 'nuevo_producto', label: 'Nuevo Producto', icon: Zap },
+  { value: 'general', label: 'Novedad', icon: Megaphone },
 ];
 
 const NoticiasAdmin = () => {
@@ -16,22 +15,48 @@ const NoticiasAdmin = () => {
   const [form, setForm] = useState({ titulo: '', descripcion: '', tipo: 'general', activo: true });
 
   useEffect(() => {
-    setNoticias(JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]'));
+    const load = async () => {
+      try {
+        const res = await authFetch('/api/noticias');
+        if (res.ok) {
+          const data = await res.json();
+          setNoticias(data);
+        }
+      } catch (e) {
+        console.error('Error cargando noticias', e);
+      }
+    };
+    load();
   }, []);
 
-  const guardar = (lista) => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(lista));
-    setNoticias(lista);
-  };
-
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (!form.titulo.trim()) return;
-    if (editando) {
-      guardar(noticias.map(n => n.id === editando ? { ...n, ...form } : n));
-      setEditando(null);
-    } else {
-      guardar([{ id: Date.now(), fecha: new Date().toISOString().split('T')[0], ...form }, ...noticias]);
+    try {
+      if (editando) {
+        const res = await authFetch(`/api/noticias/${editando}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(form)
+        });
+        if (res.ok) {
+          const updated = await res.json();
+          setNoticias(prev => prev.map(n => n.id === editando ? updated : n));
+          setEditando(null);
+        }
+      } else {
+        const res = await authFetch('/api/noticias', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(form)
+        });
+        if (res.ok) {
+          const created = await res.json();
+          setNoticias(prev => [created, ...prev]);
+        }
+      }
+    } catch (e) {
+      console.error('Error guardando noticia', e);
     }
     setForm({ titulo: '', descripcion: '', tipo: 'general', activo: true });
   };
@@ -41,12 +66,34 @@ const NoticiasAdmin = () => {
     setForm({ titulo: n.titulo, descripcion: n.descripcion, tipo: n.tipo, activo: n.activo });
   };
 
-  const eliminar = (id) => {
-    if (confirm('¿Eliminar esta noticia?')) guardar(noticias.filter(n => n.id !== id));
+  const eliminar = async (id) => {
+    if (!confirm('¿Eliminar esta noticia?')) return;
+    try {
+      const res = await authFetch(`/api/noticias/${id}`, { method: 'DELETE' });
+      if (res.ok) {
+        setNoticias(prev => prev.filter(n => n.id !== id));
+      }
+    } catch (e) {
+      console.error('Error eliminando noticia', e);
+    }
   };
 
-  const toggleActivo = (id) => {
-    guardar(noticias.map(n => n.id === id ? { ...n, activo: !n.activo } : n));
+  const toggleActivo = async (id) => {
+    const actual = noticias.find(n => n.id === id);
+    if (!actual) return;
+    try {
+      const res = await authFetch(`/api/noticias/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...actual, activo: !actual.activo })
+      });
+      if (res.ok) {
+        const updated = await res.json();
+        setNoticias(prev => prev.map(n => n.id === id ? updated : n));
+      }
+    } catch (e) {
+      console.error('Error actualizando noticia', e);
+    }
   };
 
   return (
@@ -64,7 +111,7 @@ const NoticiasAdmin = () => {
         {/* Formulario */}
         <div style={{ background: 'white', padding: '1.5rem', borderRadius: 'var(--radius-lg)', boxShadow: 'var(--shadow-sm)' }}>
           <h3 style={{ color: 'var(--color-primary-dark)', marginBottom: '1rem' }}>
-            {editando ? '✏️ Editar Noticia' : '➕ Nueva Noticia'}
+            {editando ? 'Editar Noticia' : 'Nueva Noticia'}
           </h3>
           <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
             <input type="text" placeholder="Título de la noticia" required value={form.titulo} onChange={e => setForm({...form, titulo: e.target.value})} style={{ padding: '0.65rem', borderRadius: '6px', border: '1px solid #ddd', fontSize: '0.9rem' }} />

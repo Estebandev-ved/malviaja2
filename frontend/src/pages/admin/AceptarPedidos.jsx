@@ -75,7 +75,7 @@ const PedidoCard = ({ pedido, onStatusChange, onVerClick, isUpdating }) => {
         )}
         {!isTerminal && nextState && (
           <button onClick={() => onStatusChange(pedido.id, nextState)} disabled={isUpdating} style={{ border: 'none', background: meta.color, color: 'white', padding: '0.3rem 0.7rem', borderRadius: '6px', cursor: 'pointer', fontSize: '0.75rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
-            {nextState === 'PREPARANDO' ? '✅ Aprobar' : nextState === 'EN_CAMINO' ? '🚴 Enviar' : nextState === 'ENTREGADO' ? '📦 Entregar' : 'Avanzar'} <ArrowRight size={14} />
+            {nextState === 'PREPARANDO' ? 'Aprobar' : nextState === 'EN_CAMINO' ? 'Enviar' : nextState === 'ENTREGADO' ? 'Entregar' : 'Avanzar'} <ArrowRight size={14} />
           </button>
         )}
         {pedido.estado === 'PENDIENTE' && (

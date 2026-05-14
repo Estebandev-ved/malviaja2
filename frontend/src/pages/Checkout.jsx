@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import useStore, { ACHIEVEMENTS } from '../store/useStore';
 import { useNavigate } from 'react-router-dom';
-import { CheckCircle2, Banknote, ShieldCheck, Copy, Check, Lock, Eye, EyeOff, Clock, Info, QrCode, ArrowLeft, ArrowRight, ShoppingCart, User, CreditCard, Download, ExternalLink, Smartphone, Building2, HelpCircle } from 'lucide-react';
+import { CheckCircle2, Banknote, ShieldCheck, Copy, Check, Lock, Eye, EyeOff, Clock, Info, QrCode, ArrowLeft, ArrowRight, ShoppingCart, User, CreditCard, Download, ExternalLink, Smartphone, Building2, HelpCircle, Gift, Tag, MapPin, AlertTriangle, Radio } from 'lucide-react';
 import { authFetch } from '../api';
 import useCountUp from '../utils/useCountUp';
 import AchievementToast from '../components/AchievementToast';
@@ -222,7 +222,7 @@ const PDFReceipt = ({ pedido, referencia, onClose }) => {
 };
 
 const Checkout = () => {
-  const { carrito, clearCart, user, cuponesActivos, usarCupon } = useStore();
+  const { carrito, clearCart, user, cuponesActivos, usarCupon, promoConfig, fetchPromoConfig } = useStore();
   const navigate = useNavigate();
   const [step, setStep] = useState(0);
   const [referencia, setReferencia] = useState('');
@@ -257,6 +257,10 @@ const Checkout = () => {
     };
     fetchPerfil();
   }, [user, navigate]);
+
+  useEffect(() => {
+    if (!promoConfig) fetchPromoConfig();
+  }, [promoConfig, fetchPromoConfig]);
 
   const [distancia, setDistancia] = useState(0);
   const [isCalculando, setIsCalculando] = useState(false);
@@ -293,12 +297,30 @@ const Checkout = () => {
   const cuponRegalo = cuponesActivos.find(c => c.id === 'regalo');
   const cuponBrownie = cuponesActivos.find(c => c.id === 'brownie');
   const descuentoBrownie = cuponBrownie ? 15000 : 0;
-  const descuentoPrimerViaje = primerViaje ? Math.round(subtotal * 0.20) : 0;
-  let totalCalculado = subtotal + costoEnvio - descuentoBrownie - descuentoPrimerViaje;
-  if (totalCalculado < 0) totalCalculado = 0;
+  
+  const cantidadTotal = carrito.reduce((sum, item) => sum + (Number(item.cantidad) || 0), 0);
+  const esPromo2x1 = primerViaje && promoConfig?.promo2x1Enabled && cantidadTotal >= 2;
+  const faltanItemsPara2x1 = primerViaje && promoConfig?.promo2x1Enabled && cantidadTotal === 1;
+
+  let descuentoPrimerViaje = 0;
+  if (esPromo2x1) {
+    const precios = carrito.map(item => Number(item.precio) || 0);
+    descuentoPrimerViaje = Math.min(...precios);
+  } else if (primerViaje) {
+    descuentoPrimerViaje = Math.round((Number(subtotal) || 0) * 0.20);
+  }
+
+  let totalCalculado = (Number(subtotal) || 0) + (Number(costoEnvio) || 0) - (Number(descuentoBrownie) || 0) - (Number(descuentoPrimerViaje) || 0);
+  if (isNaN(totalCalculado) || totalCalculado < 0) totalCalculado = 0;
   const cumpleMinimo = subtotal >= 15000;
 
-  if (!user && !success) { navigate('/login'); return null; }
+  useEffect(() => {
+    if (!user && !success) {
+      navigate('/login');
+    }
+  }, [user, success, navigate]);
+
+  if (!user && !success) return null;
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -444,7 +466,7 @@ const Checkout = () => {
         {/* Step 0: Carrito */}
         {step === 0 && (
           <div className="glass" style={{ padding: '2rem', borderRadius: 'var(--radius-lg)' }}>
-            <h3 style={{ color: 'var(--color-primary-dark)', marginBottom: '1rem' }}>🛒 Tu Carrito</h3>
+            <h3 style={{ color: 'var(--color-primary-dark)', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}><ShoppingCart size={24} /> Tu Carrito</h3>
             {carrito.map(item => (
               <div key={item.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.75rem 0', borderBottom: '1px solid #f0f0f0' }}>
                 <div>
@@ -455,8 +477,36 @@ const Checkout = () => {
               </div>
             ))}
             <div style={{ marginTop: '1rem', textAlign: 'right', fontSize: '1.2rem', fontWeight: 'bold', color: 'var(--color-primary-dark)' }}>
-              Subtotal: ${subtotal.toLocaleString()}
+              {esPromo2x1 ? (
+                <>
+                  Subtotal: <span style={{ textDecoration: 'line-through', color: '#999', fontSize: '1rem', marginRight: '0.5rem' }}>${subtotal.toLocaleString()}</span>
+                  <span style={{ color: '#2e7d32' }}>${(subtotal - descuentoPrimerViaje).toLocaleString()}</span>
+                </>
+              ) : (
+                `Subtotal: $${subtotal.toLocaleString()}`
+              )}
             </div>
+            
+            {faltanItemsPara2x1 && (
+              <div style={{ background: 'rgba(255, 152, 0, 0.05)', border: '1px dashed rgba(255, 152, 0, 0.4)', borderRadius: 'var(--radius-md)', padding: '1rem', color: '#e65100', marginTop: '1rem', textAlign: 'center', animation: 'fadeIn 0.5s' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem', marginBottom: '0.3rem' }}>
+                  <Tag size={18} />
+                  <strong style={{ fontSize: '1.05rem' }}>¡Estás a 1 paso del 2x1!</strong>
+                </div>
+                <div style={{ fontSize: '0.9rem', opacity: 0.9 }}>Añade otro producto al carrito y el de menor valor te saldrá <strong>TOTALMENTE GRATIS</strong>.</div>
+              </div>
+            )}
+            
+            {esPromo2x1 && (
+              <div style={{ background: 'rgba(46, 125, 50, 0.05)', border: '1px solid rgba(46, 125, 50, 0.2)', borderRadius: 'var(--radius-md)', padding: '1rem', color: '#2e7d32', marginTop: '1rem', textAlign: 'center', animation: 'fadeIn 0.5s' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem', marginBottom: '0.3rem' }}>
+                  <Gift size={18} />
+                  <strong style={{ fontSize: '1.05rem' }}>¡Promo 2x1 Aplicada!</strong>
+                </div>
+                <div style={{ fontSize: '0.9rem', opacity: 0.9 }}>El descuento ya está aplicado en tu subtotal. ¡El segundo producto te sale totalmente GRATIS!</div>
+              </div>
+            )}
+
             <button className="btn btn--primary w-full" style={{ marginTop: '1.5rem' }} onClick={() => setStep(1)} disabled={!canGoNext()}>
               Continuar con Datos <ArrowRight size={18} style={{ marginLeft: '0.5rem' }} />
             </button>
@@ -466,7 +516,7 @@ const Checkout = () => {
         {/* Step 1: Datos */}
         {step === 1 && (
           <div className="glass" style={{ padding: '2rem', borderRadius: 'var(--radius-lg)' }}>
-            <h3 style={{ color: 'var(--color-primary-dark)', marginBottom: '1.5rem' }}>📍 Datos de Entrega</h3>
+            <h3 style={{ color: 'var(--color-primary-dark)', marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}><MapPin size={24} /> Datos de Entrega</h3>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
               <input type="text" placeholder="Nombre Completo" required className="checkout-input" value={formData.nombre} onChange={e => setFormData({...formData, nombre: e.target.value})} />
               <div>
@@ -547,18 +597,53 @@ const Checkout = () => {
 
                 <hr style={{ border: 'none', borderTop: '1px dashed #fbc02d', margin: '1rem 0' }} />
 
+                {/* Premium Security Warning */}
+                <div style={{
+                  background: 'rgba(211, 47, 47, 0.05)',
+                  border: '1px solid rgba(211, 47, 47, 0.2)',
+                  borderRadius: 'var(--radius-md)',
+                  padding: '1.25rem',
+                  display: 'flex',
+                  gap: '1rem',
+                  alignItems: 'flex-start',
+                  marginBottom: '1rem'
+                }}>
+                  <ShieldCheck style={{ color: '#d32f2f', flexShrink: 0, marginTop: '2px' }} size={24} />
+                  <div>
+                    <h4 style={{ color: '#d32f2f', margin: '0 0 0.5rem 0', fontSize: '0.95rem', fontWeight: 'bold' }}>Validación por Inteligencia Artificial</h4>
+                    <p style={{ color: '#555', fontSize: '0.85rem', margin: '0 0 0.5rem 0', lineHeight: 1.5 }}>
+                      Cada comprobante es analizado milimétricamente por nuestro sistema. El envío de comprobantes falsos, alterados o sin fondos resultará en:
+                    </p>
+                    <ul style={{ color: '#555', fontSize: '0.85rem', margin: 0, paddingLeft: '1.2rem', lineHeight: 1.5 }}>
+                      <li><strong>Baneo inmediato e irreversible</strong> de tu cuenta.</li>
+                      <li>Inclusión en lista negra por IP, ID de dispositivo y datos de contacto.</li>
+                    </ul>
+                  </div>
+                </div>
+
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
                   <LineItem label="Subtotal" value={`$${subtotal.toLocaleString()}`} />
-                  <LineItem label="Envío" value={cuponEnvio ? { text: 'Gratis (Cupón)', color: '#fbc02d' } : isCalculando ? { text: 'Calculando... 📡', color: '#fbc02d' } : distancia > 0 ? { text: `$${costoEnvio.toLocaleString()} (${distancia.toFixed(1)} km)`, color: '#e65100' } : { text: 'Ingresa tu dirección', color: '#e65100' }} />
+                  <LineItem label="Envío" value={cuponEnvio ? { text: 'Gratis (Cupón)', color: '#fbc02d' } : isCalculando ? { text: <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}>Calculando... <Radio size={14} className="animate-pulse" /></span>, color: '#fbc02d' } : distancia > 0 ? { text: `$${costoEnvio.toLocaleString()} (${distancia.toFixed(1)} km)`, color: '#e65100' } : { text: 'Ingresa tu dirección', color: '#e65100' }} />
                   {!cuponEnvio && !isCalculando && distancia === 0 && formData.direccion.length > 8 && (
-                    <div style={{ background: '#fff3e0', border: '1px solid #ff9800', borderRadius: 'var(--radius-sm)', padding: '0.6rem', fontSize: '0.78rem', color: '#e65100' }}>
-                      ⚠️ No pudimos calcular la distancia. Se aplicará envío base de ${(10000).toLocaleString()}.
+                    <div style={{ background: '#fff3e0', border: '1px solid #ff9800', borderRadius: 'var(--radius-sm)', padding: '0.6rem', fontSize: '0.78rem', color: '#e65100', display: 'flex', alignItems: 'flex-start', gap: '0.4rem' }}>
+                      <AlertTriangle size={16} style={{ flexShrink: 0, marginTop: '2px' }} />
+                      <span>No pudimos calcular la distancia. Se aplicará envío base de ${(10000).toLocaleString()}.</span>
                     </div>
                   )}
-                  {cuponBrownie && <LineItem label="🎁 Brownie Gratis" value={{ text: '-$15,000', color: '#4caf50' }} />}
-                  {primerViaje && <LineItem label="🔥 20% OFF (Primer Viaje)" value={{ text: `-$${descuentoPrimerViaje.toLocaleString()}`, color: '#4caf50' }} />}
-                  {cuponRegalo && <LineItem label="🎀 Regalo Sorpresa" value={{ text: '¡Incluido!', color: '#4caf50' }} />}
+                  {cuponBrownie && <LineItem label={<span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}><Gift size={16} /> Brownie Gratis</span>} value={{ text: '-$15,000', color: '#4caf50' }} />}
+                  {primerViaje && !esPromo2x1 && <LineItem label={<span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}><Tag size={16} /> 20% OFF (Primer Viaje)</span>} value={{ text: `-$${descuentoPrimerViaje.toLocaleString()}`, color: '#4caf50' }} />}
+                  {esPromo2x1 && <LineItem label={<span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}><Gift size={16} /> Promo 2x1 Aplicada</span>} value={{ text: `-$${descuentoPrimerViaje.toLocaleString()}`, color: '#4caf50' }} />}
+                  {cuponRegalo && <LineItem label={<span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}><Gift size={16} /> Regalo Sorpresa</span>} value={{ text: '¡Incluido!', color: '#4caf50' }} />}
                 </div>
+                
+                {faltanItemsPara2x1 && (
+                  <div style={{ background: 'rgba(255, 152, 0, 0.05)', border: '1px dashed rgba(255, 152, 0, 0.4)', borderRadius: 'var(--radius-sm)', padding: '0.8rem', color: '#e65100', marginTop: '1rem', textAlign: 'center' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem', marginBottom: '0.2rem' }}>
+                      <Tag size={16} /> <strong style={{ fontSize: '0.9rem' }}>¡Aprovecha el 2x1!</strong>
+                    </div>
+                    <div style={{ fontSize: '0.8rem', opacity: 0.9 }}>Añade otro producto al carrito y te sale GRATIS (el de menor o igual valor).</div>
+                  </div>
+                )}
 
                 <hr style={{ border: 'none', borderTop: '1px dashed #fbc02d', margin: '1rem 0' }} />
                 <div style={{
@@ -569,8 +654,8 @@ const Checkout = () => {
                 }}>
                   <span style={{ fontWeight: 'bold', fontSize: 'clamp(0.85rem, 3vw, 1rem)', color: '#fbc02d' }}>Total a transferir</span>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                    <span style={{ fontWeight: 800, fontSize: 'clamp(1.2rem, 5vw, 1.6rem)', color: '#fbc02d' }}>$<AnimatedTotal value={totalCalculado} /></span>
-                    <CopyButton text={totalCalculado.toLocaleString()} label="Copiar monto" />
+                    <span style={{ fontWeight: 800, fontSize: 'clamp(1.2rem, 5vw, 1.6rem)', color: '#fbc02d' }}>$<AnimatedTotal value={Number(totalCalculado) || 0} /></span>
+                    <CopyButton text={(Number(totalCalculado) || 0).toLocaleString()} label="Copiar monto" />
                   </div>
                 </div>
 
@@ -604,7 +689,7 @@ const Checkout = () => {
                           <p style={{ fontSize: '0.75rem' }}>Máximo 10MB, formato imagen</p>
                         </div>
                       )}
-                      <input id="file-input" type="file" accept="image/*" required style={{ display: 'none' }} onChange={e => {
+                      <input id="file-input" type="file" accept="image/*" style={{ display: 'none' }} onChange={e => {
                         const file = e.target.files[0];
                         if (file && file.size > 10 * 1024 * 1024) { alert("La imagen es muy pesada (máximo 10MB)."); e.target.value = null; setComprobante(null); setComprobantePreview(null); }
                         else { setComprobante(file); setComprobantePreview(URL.createObjectURL(file)); }
@@ -613,8 +698,9 @@ const Checkout = () => {
                   </div>
 
                   {!cumpleMinimo && (
-                    <div style={{ background: '#ffebee', border: '1px solid #ef9a9a', borderRadius: 'var(--radius-sm)', padding: '0.75rem', fontSize: '0.85rem', color: '#c62828', textAlign: 'center' }}>
-                      ⚠️ <strong>Compra mínima de $15,000 requerida.</strong> Tu subtotal actual es de ${subtotal.toLocaleString()}.
+                    <div style={{ background: '#ffebee', border: '1px solid #ef9a9a', borderRadius: 'var(--radius-sm)', padding: '0.75rem', fontSize: '0.85rem', color: '#c62828', display: 'flex', alignItems: 'flex-start', gap: '0.4rem' }}>
+                      <AlertTriangle size={18} style={{ flexShrink: 0, marginTop: '1px' }} />
+                      <span><strong>Compra mínima de $15,000 requerida.</strong> Tu subtotal actual es de ${subtotal.toLocaleString()}.</span>
                     </div>
                   )}
 

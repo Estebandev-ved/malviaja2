@@ -87,12 +87,13 @@ public class PedidoService {
                     return usuarioRepository.save(nuevo);
                 });
 
-        // Validar compra mínima desde la configuración global
+        // 2. Calcular total en el servidor de forma segura (ignora el total enviado por el cliente)
+        double totalCalculadoSeguro = calcularTotalSeguro(request.getCarrito(), usuario);
+
+        // Validar compra mínima desde la configuración global con el total calculado
         double compraMinima = configuracionService.obtenerConfiguracion().getCompraMinima();
-        // Nota: asumiendo que request.getTotal() es el total del pedido con envíos. Lo ideal es validar el subtotal de los productos,
-        // pero validaremos el total general si no hay un subtotal en el request.
-        if (request.getTotal() < compraMinima) {
-            throw new IllegalStateException("El total del pedido no alcanza el mínimo requerido para exclusividad: $" + compraMinima);
+        if (totalCalculadoSeguro < compraMinima) {
+            throw new IllegalStateException("El total del pedido (" + totalCalculadoSeguro + ") no alcanza el mínimo requerido: $" + compraMinima);
         }
 
         usuario.setDireccionPorDefecto(HtmlUtils.htmlEscape(request.getDireccion()));
@@ -105,17 +106,16 @@ public class PedidoService {
         
         usuarioRepository.save(usuario);
 
-        // 2. Validar y decrementar stock (lanza excepción si no hay stock suficiente)
-        // La transacción garantiza que si algo falla, ningún stock se modifica.
+        // 3. Validar y decrementar stock (lanza excepción si no hay stock suficiente)
         decrementarStock(request.getCarrito());
 
-        // 3. Guardar el pedido
+        // 4. Guardar el pedido
         Pedido pedido = new Pedido();
         pedido.setUsuario(usuario);
         pedido.setNombreReceptor(HtmlUtils.htmlEscape(request.getNombre()));
         pedido.setTelefono(HtmlUtils.htmlEscape(request.getTelefono()));
         pedido.setDireccionEnvio(HtmlUtils.htmlEscape(request.getDireccion()));
-        pedido.setTotal(request.getTotal());
+        pedido.setTotal(totalCalculadoSeguro);
         pedido.setCarritoJson(request.getCarrito());
         pedido.setEstado("PENDIENTE");
 
@@ -126,9 +126,9 @@ public class PedidoService {
         }
         pedido.setReferencia(ref);
 
-        // 3.1 Analizar comprobante con IA para validar pago
+        // 4.1 Analizar comprobante con IA para validar pago
         OcrExtractionResult extraction = geminiOcrService.extraerComprobante(comprobante);
-        aplicarResultadoOcr(pedido, extraction, request.getTotal());
+        aplicarResultadoOcr(pedido, extraction, totalCalculadoSeguro);
         pedido = pedidoRepository.save(pedido);
         log.info("✅ Pedido #{} guardado en BD. Cliente: {}", pedido.getId(), usuario.getEmail());
 
@@ -225,8 +225,9 @@ public class PedidoService {
             }
             int cantidadSolicitada = parseCantidad(item.get("cantidad"));
             if (cantidadSolicitada <= 0) {
-                log.warn("Cantidad inválida para producto {}: {}. Saltando.", productoId, item.get("cantidad"));
-                continue;
+                String error = String.format("Cantidad inválida detectada para producto '%s': %d. Posible fraude.", item.get("nombre"), cantidadSolicitada);
+                log.error("❌ {}", error);
+                throw new IllegalStateException(error);
             }
 
             Optional<Producto> productoOpt = productoRepository.findById(productoId);
@@ -273,6 +274,69 @@ public class PedidoService {
         } catch (NumberFormatException e) {
             return 0;
         }
+    }
+
+    /**
+     * Calcula el precio total del carrito directamente desde la Base de Datos para evitar manipulación.
+     * Aplica la promoción 2x1 si corresponde y el usuario es elegible.
+     */
+    @SuppressWarnings("unchecked")
+    private double calcularTotalSeguro(String carritoJson, Usuario usuario) throws Exception {
+        double subtotal = 0.0;
+        int cantidadBrowniesFuerte = 0;
+        double precioBrownieFuerte = 15000.0; // Precio base asumido para la promo
+        
+        List<Map<String, Object>> items = objectMapper.readValue(carritoJson, List.class);
+        
+        for (Map<String, Object> item : items) {
+            Object rawId = item.get("id");
+            if (rawId == null) continue;
+
+            Long productoId = parseProductoId(rawId);
+            if (productoId == null) continue;
+
+            int cantidadSolicitada = parseCantidad(item.get("cantidad"));
+            if (cantidadSolicitada <= 0) {
+                throw new IllegalStateException("Cantidad inválida detectada. Posible fraude.");
+            }
+
+            Producto producto = productoRepository.findById(productoId)
+                    .orElseThrow(() -> new IllegalStateException("Producto no encontrado en la base de datos: " + productoId));
+
+            double precioTotalProducto = producto.getPrecio() * cantidadSolicitada;
+            subtotal += precioTotalProducto;
+
+            // Identificar si es el producto de la promo (Asumiendo que es el Brownie Fuerte)
+            // Se puede mejorar buscando por un flag específico o nombre exacto si es necesario
+            if (producto.getNombre().toLowerCase().contains("brownie fuerte")) {
+                cantidadBrowniesFuerte += cantidadSolicitada;
+                precioBrownieFuerte = producto.getPrecio();
+            }
+        }
+
+        // Lógica de Promoción 2x1
+        com.example.malviaja2_backend.model.ConfiguracionGlobal config = configuracionService.obtenerConfiguracion();
+        boolean usuarioEligible = usuario.getPrimerCompraRealizada() == null || !usuario.getPrimerCompraRealizada();
+        
+        if (config.getPromo2x1Enabled() && usuarioEligible && cantidadBrowniesFuerte >= 2) {
+            // Descontar 1 brownie fuerte
+            subtotal -= precioBrownieFuerte;
+            log.info("Descuento 2x1 aplicado para el usuario {} (Ahorro: {})", usuario.getEmail(), precioBrownieFuerte);
+        } else if (cantidadBrowniesFuerte >= 2 && !usuarioEligible) {
+            log.warn("Usuario {} intentó usar el 2x1 pero ya no es elegible. Cobrando precio full.", usuario.getEmail());
+        }
+
+        // Envío (simplificado, asumiendo un costo fijo o consultando la config si aplica)
+        // Por simplicidad, sumamos el costo base de envío si el subtotal no supera el minFree
+        double envio = 0.0;
+        if (subtotal < config.getDeliveryMinFree()) {
+            // Asignar un costo de envío base si es menor al mínimo para envío gratis
+            // Lo ideal sería calcularlo por km, pero asignamos un base seguro
+            envio = 10000.0; // Costo base fijo como medida de seguridad (puedes ajustar)
+            log.info("Añadiendo costo de envío fijo de {}", envio);
+        }
+
+        return subtotal + envio;
     }
 
 

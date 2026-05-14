@@ -37,6 +37,15 @@ public class ResenaService {
         if (resena.getCalificacion() < 1 || resena.getCalificacion() > 5) {
             throw new IllegalArgumentException("Calificación debe ser entre 1 y 5");
         }
+        
+        // Prevención XSS: Sanitizar entradas de usuario antes de guardar en la Base de Datos
+        if (resena.getComentario() != null) {
+            resena.setComentario(org.springframework.web.util.HtmlUtils.htmlEscape(resena.getComentario()));
+        }
+        if (resena.getUsuarioNombre() != null) {
+            resena.setUsuarioNombre(org.springframework.web.util.HtmlUtils.htmlEscape(resena.getUsuarioNombre()));
+        }
+
         log.info("Nueva reseña para producto #{} de usuario {}", resena.getProductoId(), resena.getUsuarioUid());
         return resenaRepository.save(resena);
     }

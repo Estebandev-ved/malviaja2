@@ -45,7 +45,7 @@ const Comestibles = () => {
 
   useEffect(() => {
     fetchProductos();
-  }, [fetchProductos]);
+  }, []);
 
   useEffect(() => {
     if (!productos.length) return;
@@ -108,17 +108,21 @@ const Comestibles = () => {
             </Link>
           </div>
 
-          {productos.map(prod => (
-            <div key={prod.id} className="feature-card glass" data-reveal style={{ textAlign: 'left' }}>
-              <div className="product-image" style={{ aspectRatio: '4/3', background: 'var(--color-primary-light)', borderRadius: 'var(--radius-md)', marginBottom: '1rem', backgroundImage: prod.imageUrl ? `url(${prod.imageUrl})` : 'none', backgroundSize: 'cover', backgroundPosition: 'center' }}></div>
-              <h3 className="text-primary font-bold" style={{ fontSize: '1.5rem', marginBottom: '0.5rem' }}>{prod.nombre}</h3>
-              <p style={{ color: 'var(--color-text-light)', marginBottom: '1rem' }}>{prod.descripcion}</p>
-              <div className="flex justify-between items-center" style={{ marginBottom: '1rem' }}>
-                <span className="font-bold text-secondary" style={{ fontSize: '1.25rem' }}>${prod.precio.toLocaleString()}</span>
-                <span style={{ fontSize: '0.85rem', background: '#ffe0b2', padding: '0.2rem 0.5rem', borderRadius: '4px', color: '#e65100', fontWeight: 'bold' }}>
-                  Dosis: {prod.dosis}
-                </span>
-              </div>
+          {productos.map((prod, index) => {
+            const precioNumber = typeof prod?.precio === 'number' ? prod.precio : Number(prod?.precio);
+            const precioText = Number.isFinite(precioNumber) ? `$${precioNumber.toLocaleString()}` : 'Consultar';
+            const dosisText = prod?.dosis || 'Variable';
+            return (
+              <div key={prod?.id ?? `producto-${index}`} className="feature-card glass" data-reveal style={{ textAlign: 'left' }}>
+                <div className="product-image" style={{ aspectRatio: '4/3', background: 'var(--color-primary-light)', borderRadius: 'var(--radius-md)', marginBottom: '1rem', backgroundImage: prod?.imageUrl ? `url(${prod.imageUrl})` : 'none', backgroundSize: 'cover', backgroundPosition: 'center' }}></div>
+                <h3 className="text-primary font-bold" style={{ fontSize: '1.5rem', marginBottom: '0.5rem' }}>{prod?.nombre || 'Producto'}</h3>
+                <p style={{ color: 'var(--color-text-light)', marginBottom: '1rem' }}>{prod?.descripcion || 'Pronto mas detalles.'}</p>
+                <div className="flex justify-between items-center" style={{ marginBottom: '1rem' }}>
+                  <span className="font-bold text-secondary" style={{ fontSize: '1.25rem' }}>{precioText}</span>
+                  <span style={{ fontSize: '0.85rem', background: '#ffe0b2', padding: '0.2rem 0.5rem', borderRadius: '4px', color: '#e65100', fontWeight: 'bold' }}>
+                    Dosis: {dosisText}
+                  </span>
+                </div>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.75rem' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
                   {renderStars(resenasData[prod.id]?.promedio || 0)}
@@ -134,8 +138,9 @@ const Comestibles = () => {
               <button className="btn btn--primary w-full" data-magnetic="true" data-magnetic-strength="0.12" onClick={(e) => handleAdd(prod, e)}>
                 Añadir al Carrito
               </button>
-            </div>
-          ))}
+              </div>
+            );
+          })}
         </div>
       )}
 

@@ -27,8 +27,16 @@ public class PedidoController {
 
     @GetMapping("/referencia/{ref}")
     public ResponseEntity<?> obtenerPorReferencia(@PathVariable String ref) {
+        org.springframework.security.core.Authentication auth = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
+        
         return pedidoService.obtenerPorReferencia(ref)
-                .<ResponseEntity<?>>map(ResponseEntity::ok)
+                .<ResponseEntity<?>>map(pedido -> {
+                    boolean isAdmin = auth.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("ADMIN"));
+                    if (!isAdmin && !auth.getName().equals(pedido.getUsuario().getFirebaseUid())) {
+                        return ResponseEntity.status(403).body(Map.of("error", "No tienes permiso para ver este pedido."));
+                    }
+                    return ResponseEntity.ok(pedido);
+                })
                 .orElse(ResponseEntity.notFound().build());
     }
 
@@ -111,6 +119,12 @@ public class PedidoController {
     public ResponseEntity<?> procesarCheckout(
             @Valid @ModelAttribute PedidoRequest request,
             @RequestParam("comprobante") MultipartFile comprobante) {
+
+        String authUid = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication().getName();
+        if (!authUid.equals(request.getUserId())) {
+            log.warn("Intento de BOLA detectado: Usuario {} intentó crear un pedido para {}", authUid, request.getUserId());
+            return ResponseEntity.status(403).body(Map.of("error", "No tienes permiso para crear pedidos a nombre de otro usuario."));
+        }
 
         log.info("Recibiendo pedido de: {} ({})", request.getNombre(), request.getEmail());
         try {

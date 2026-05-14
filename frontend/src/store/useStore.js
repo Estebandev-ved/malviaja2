@@ -174,6 +174,20 @@ const useStore = create((set, get) => {
   loading: false,
   error: null,
   
+  promoConfig: null,
+  fetchPromoConfig: async () => {
+    try {
+      // The frontend uses VITE_API_URL, we'll try to fetch the config.
+      const res = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:8080'}/api/configuracion/publica`);
+      if (res.ok) {
+        const data = await res.json();
+        set({ promoConfig: data });
+      }
+    } catch (e) {
+      console.warn('No se pudo cargar promoConfig en store:', e.message);
+    }
+  },
+  
   fetchProductos: async () => {
     // Si no hay productos, mostramos loading. Si ya hay, actualizamos en 2do plano sin bloquear UI
     if (get().productos.length === 0) {

@@ -15,7 +15,7 @@ const CartDrawer = () => {
 
   if (!isCartOpen) return null;
 
-  const subtotal = carrito.reduce((sum, item) => sum + (item.precio * item.cantidad), 0);
+  const subtotal = carrito.reduce((sum, item) => sum + ((Number(item.precio) || 0) * (Number(item.cantidad) || 0)), 0);
   
   const cuponEnvio = cuponesActivos.find(c => c.id === 'envio');
   const costoEnvio = cuponEnvio ? 0 : 10000;
@@ -23,8 +23,8 @@ const CartDrawer = () => {
   const cuponBrownie = cuponesActivos.find(c => c.id === 'brownie');
   const descuentoBrownie = cuponBrownie ? 15000 : 0;
   
-  let total = subtotal + costoEnvio - descuentoBrownie;
-  if (total < 0) total = 0;
+  let total = (Number(subtotal) || 0) + (Number(costoEnvio) || 0) - (Number(descuentoBrownie) || 0);
+  if (isNaN(total) || total < 0) total = 0;
 
   const handleCheckout = () => {
     toggleCart(); // Cerrar el carrito
@@ -37,7 +37,7 @@ const CartDrawer = () => {
 
   return (
     <div className="cart-overlay" onClick={toggleCart}>
-        <div className="cart-drawer glass" onClick={(e) => e.stopPropagation()} data-reveal>
+        <div className="cart-drawer glass" onClick={(e) => e.stopPropagation()}>
         <div className="cart-header">
           <h2>Tu Viaje (Carrito)</h2>
           <button className="cart-close" onClick={toggleCart}><X size={24} /></button>
@@ -70,7 +70,7 @@ const CartDrawer = () => {
             )}
             <div className="cart-total">
               <span>Total Estimado:</span>
-              <span className="font-bold text-primary">$<AnimatedTotal value={total} /></span>
+              <span className="font-bold text-primary">$<AnimatedTotal value={Number(total) || 0} /></span>
             </div>
             <button className="btn btn--secondary w-full" data-magnetic="true" data-magnetic-strength="0.12" onClick={handleCheckout}>
               Proceder al Pago
