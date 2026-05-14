@@ -32,12 +32,41 @@ export async function authFetch(path, options = {}) {
     headers['Authorization'] = `Bearer ${token}`;
   }
 
-  return fetch(`${API_URL}${path}`, { ...options, headers });
+  // Timeout global de 15 segundos para evitar colgar la UI
+  const controller = new AbortController();
+  const id = setTimeout(() => controller.abort(), 15000);
+  
+  try {
+    const response = await fetch(`${API_URL}${path}`, { 
+      ...options, 
+      headers,
+      signal: options.signal || controller.signal 
+    });
+    clearTimeout(id);
+    return response;
+  } catch (error) {
+    clearTimeout(id);
+    throw error;
+  }
 }
 
 /**
  * fetch público, sin token (catálogo de productos, etc.)
  */
-export function apiFetch(path, options = {}) {
-  return fetch(`${API_URL}${path}`, options);
+export async function apiFetch(path, options = {}) {
+  const controller = new AbortController();
+  const id = setTimeout(() => controller.abort(), 15000);
+
+  try {
+    const response = await fetch(`${API_URL}${path}`, { 
+      ...options, 
+      signal: options.signal || controller.signal 
+    });
+    clearTimeout(id);
+    return response;
+  } catch (error) {
+    clearTimeout(id);
+    throw error;
+  }
 }
+

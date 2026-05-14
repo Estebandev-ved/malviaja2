@@ -80,7 +80,10 @@ const Home = () => {
   useEffect(() => {
     const loadPromo = async () => {
       try {
-        const res = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:8080'}/api/configuracion/publica`);
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 10000);
+        const res = await apiFetch('/api/configuracion/publica', { signal: controller.signal });
+        clearTimeout(timeoutId);
         if (res.ok) {
           const data = await res.json();
           setPromoConfig(data);
@@ -90,7 +93,7 @@ const Home = () => {
       }
     };
     loadPromo();
-    const interval = setInterval(loadPromo, 5000);
+    const interval = setInterval(loadPromo, 15000);
     return () => clearInterval(interval);
   }, []);
 

@@ -180,8 +180,11 @@ const useStore = create((set, get) => {
   promoConfig: null,
   fetchPromoConfig: async () => {
     try {
-      // The frontend uses VITE_API_URL, we'll try to fetch the config.
-      const res = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:8080'}/api/configuracion/publica`);
+      // Timeout de 10s para evitar que el UI se quede colgado
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10000);
+      const res = await apiFetch('/api/configuracion/publica', { signal: controller.signal });
+      clearTimeout(timeoutId);
       if (res.ok) {
         const data = await res.json();
         set({ promoConfig: data });
@@ -194,7 +197,11 @@ const useStore = create((set, get) => {
   fetchProductos: async () => {
     set({ loading: true, error: null });
     try {
-      const response = await apiFetch('/api/productos');
+      // Timeout de 10s para evitar que el catálogo se quede en skeleton loader
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10000);
+      const response = await apiFetch('/api/productos', { signal: controller.signal });
+      clearTimeout(timeoutId);
       if (!response.ok) throw new Error('Error al cargar productos');
       const data = await response.json();
       set({ productos: data, loading: false });
