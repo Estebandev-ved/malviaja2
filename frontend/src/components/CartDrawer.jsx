@@ -99,7 +99,17 @@ const CartDrawer = () => {
               <span>Total Estimado:</span>
               <span className="font-bold text-primary">$<AnimatedTotal value={Number(total) || 0} /></span>
             </div>
+            <div className="cart-delay-notice" style={{ background: 'rgba(251, 192, 45, 0.1)', padding: '0.75rem', borderRadius: '8px', marginBottom: '1rem', border: '1px dashed var(--color-secondary)', display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+              <div style={{ background: 'var(--color-secondary)', color: 'var(--color-primary-dark)', width: '24px', height: '24px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                <span style={{ fontSize: '14px', fontWeight: 'bold' }}>!</span>
+              </div>
+              <p style={{ fontSize: '0.85rem', margin: 0, color: 'var(--color-primary-dark)', lineHeight: '1.4' }}>
+                Debido a la <strong>alta demanda</strong>, los pedidos están tomando entre <strong>40 y 60 min</strong>.
+              </p>
+            </div>
+
             <button className="btn btn--secondary w-full" data-magnetic="true" data-magnetic-strength="0.12" onClick={handleCheckout}>
+
               Proceder al Pago
             </button>
           </div>

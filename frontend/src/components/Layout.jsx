@@ -1,8 +1,10 @@
 import { Outlet, useLocation } from 'react-router-dom';
 import { useEffect } from 'react';
 import Navbar from './Navbar';
+import TopBanner from './TopBanner';
 import Footer from './Footer';
 import CartDrawer from './CartDrawer';
+
 import WhatsAppButton from './WhatsAppButton';
 import './Layout.css';
 
@@ -182,8 +184,10 @@ const Layout = () => {
 
   return (
     <div className="layout">
+      <TopBanner />
       <Navbar />
       <CartDrawer />
+
       <main className="main-content">
         <div className="page-transition" key={location.pathname}>
           <Outlet />

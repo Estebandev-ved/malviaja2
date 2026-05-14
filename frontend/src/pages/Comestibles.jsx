@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Star, MessageSquare } from 'lucide-react';
+import { Star, MessageSquare, Clock } from 'lucide-react';
 import useStore from '../store/useStore';
 import { apiFetch } from '../api';
 import ProductReviews from '../components/ProductReviews';
@@ -73,9 +73,17 @@ const Comestibles = () => {
   return (
     <div className="container py-16">
       <h1 className="section-title text-center" data-reveal>Nuestro Catálogo</h1>
-      <p className="text-center text-primary" data-reveal style={{ marginBottom: '3rem', maxWidth: '600px', margin: '0 auto 3rem' }}>
+      <p className="text-center text-primary" data-reveal style={{ marginBottom: '1.5rem', maxWidth: '600px', margin: '0 auto 1.5rem' }}>
         Selecciona tu compañero de viaje. Recuerda consumir con responsabilidad y esperar al menos 45 minutos para sentir los efectos.
       </p>
+
+      <div className="glass" data-reveal style={{ maxWidth: '600px', margin: '0 auto 3rem', padding: '1rem', borderRadius: '12px', border: '1px solid var(--color-secondary)', background: 'rgba(251, 192, 45, 0.05)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '1rem' }}>
+        <Clock className="text-secondary" size={24} />
+        <span style={{ fontSize: '1.1rem', color: 'var(--color-primary-dark)', fontWeight: '600' }}>
+          ⚠️ Alta Demanda: Pedidos hoy toman 40 - 60 mins.
+        </span>
+      </div>
+
 
       {loading ? (
         <div className="catalog-grid">
