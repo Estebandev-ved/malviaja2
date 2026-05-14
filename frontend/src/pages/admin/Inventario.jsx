@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { Package, AlertTriangle, RefreshCw, TrendingDown, Edit2, Check, X, Bell } from 'lucide-react';
 import { logActivity } from '../../utils/activityLog';
-import { authFetch, apiFetch } from '../../api';
+import { authFetch } from '../../api';
+import useStore from '../../store/useStore';
 
 const KEY_MOVIMIENTOS = 'admin_inventario_movimientos';
 const KEY_UMBRAL = 'admin_inventario_umbral';
@@ -21,27 +22,13 @@ const getStockStatus = (stock, umbral) => {
 };
 
 const Inventario = () => {
-  const [productos, setProductos] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const { productos, fetchProductos, loading } = useStore();
   const [umbral, setUmbral] = useState(() => Number(localStorage.getItem(KEY_UMBRAL)) || 5);
   const [editandoStock, setEditandoStock] = useState(null);
   const [nuevoStock, setNuevoStock] = useState('');
   const [movimientos, setMovimientos] = useState([]);
   const [editandoUmbral, setEditandoUmbral] = useState(false);
   const [umbralTmp, setUmbralTmp] = useState(umbral);
-
-  const fetchProductos = async () => {
-    setLoading(true);
-    try {
-      const r = await apiFetch('/api/productos');
-      if (r.ok) {
-        const data = await r.json();
-        const lista = Array.isArray(data) ? data : data?.content || [];
-        setProductos(lista);
-      }
-    } catch (_) {}
-    setLoading(false);
-  };
 
   useEffect(() => {
     fetchProductos();
@@ -74,10 +61,14 @@ const Inventario = () => {
       });
       guardarMovimiento(producto, producto.stock, nuevo);
       logActivity('INVENTARIO', `Stock de "${producto.nombre}" actualizado: ${producto.stock} → ${nuevo}`);
-      setProductos(p => p.map(pr => pr.id === producto.id ? { ...pr, stock: nuevo } : pr));
+      useStore.setState(state => ({
+        productos: state.productos.map(pr => pr.id === producto.id ? { ...pr, stock: nuevo } : pr)
+      }));
     } catch (_) {
       guardarMovimiento(producto, producto.stock, nuevo);
-      setProductos(p => p.map(pr => pr.id === producto.id ? { ...pr, stock: nuevo } : pr));
+      useStore.setState(state => ({
+        productos: state.productos.map(pr => pr.id === producto.id ? { ...pr, stock: nuevo } : pr)
+      }));
     }
     setEditandoStock(null);
     setNuevoStock('');
@@ -157,7 +148,7 @@ const Inventario = () => {
         <h2 style={{ fontSize: '1.1rem', marginBottom: '1.5rem', color: 'var(--color-primary-dark)' }}>Estado del Inventario</h2>
         {productos.length === 0 ? (
           <p style={{ textAlign: 'center', color: 'var(--color-text-light)', padding: '2rem' }}>
-            {loading ? 'Cargando productos...' : 'No hay productos'}
+            {loading ? 'Cargando productos...' : 'No hay productos en la base de datos. Ve a /admin/productos para crear algunos.'}
           </p>
         ) : (
           <div style={{ overflowX: 'auto' }}>
