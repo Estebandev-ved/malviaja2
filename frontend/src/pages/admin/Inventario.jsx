@@ -22,19 +22,24 @@ const getStockStatus = (stock, umbral) => {
 };
 
 const Inventario = () => {
-  const { productos, fetchProductos, loading } = useStore();
+  const storeProductos = useStore(s => s.productos);
+  const storeFetch = useStore(s => s.fetchProductos);
   const [umbral, setUmbral] = useState(() => Number(localStorage.getItem(KEY_UMBRAL)) || 5);
   const [editandoStock, setEditandoStock] = useState(null);
   const [nuevoStock, setNuevoStock] = useState('');
   const [movimientos, setMovimientos] = useState([]);
   const [editandoUmbral, setEditandoUmbral] = useState(false);
   const [umbralTmp, setUmbralTmp] = useState(umbral);
+  const [localLoading, setLocalLoading] = useState(false);
 
   useEffect(() => {
-    fetchProductos();
+    setLocalLoading(true);
+    storeFetch().finally(() => setLocalLoading(false));
     setMovimientos(JSON.parse(localStorage.getItem(KEY_MOVIMIENTOS) || '[]'));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  const productos = storeProductos;
 
   const guardarMovimiento = (producto, stockAnterior, stockNuevo) => {
     const mov = {
@@ -149,7 +154,7 @@ const Inventario = () => {
         <h2 style={{ fontSize: '1.1rem', marginBottom: '1.5rem', color: 'var(--color-primary-dark)' }}>Estado del Inventario</h2>
         {productos.length === 0 ? (
           <p style={{ textAlign: 'center', color: 'var(--color-text-light)', padding: '2rem' }}>
-            {loading ? 'Cargando productos...' : 'No hay productos en la base de datos. Ve a /admin/productos para crear algunos.'}
+            {localLoading ? 'Cargando productos...' : 'No hay productos en la base de datos. Ve a /admin/productos para crear algunos.'}
           </p>
         ) : (
           <div style={{ overflowX: 'auto' }}>
