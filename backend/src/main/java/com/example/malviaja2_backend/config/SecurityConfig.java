@@ -13,6 +13,8 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import java.util.Arrays;
 import java.util.List;
@@ -27,6 +29,9 @@ public class SecurityConfig {
     @Value("${cors.allowed-origins:http://localhost:5173,http://localhost:5174,https://malviaja2-qvce46ctq-estebandev-veds-projects.vercel.app,https://malviaja2.vercel.app}")
     private String allowedOriginsRaw;
 
+    @Value("${cors.allowed-origin-patterns:https://*.vercel.app}")
+    private String allowedOriginPatternsRaw;
+
     @Bean
     FirebaseAuthFilter firebaseAuthFilter(UsuarioRepository usuarioRepository, 
                                           com.example.malviaja2_backend.service.ConfiguracionService configuracionService,
@@ -37,28 +42,8 @@ public class SecurityConfig {
     @Bean
     SecurityFilterChain securityFilterChain(HttpSecurity http,
                                             FirebaseAuthFilter firebaseAuthFilter) throws Exception {
-        // trim() en cada origen: evita espacios accidentales si la var de entorno tiene "url1, url2"
-        List<String> allowedOrigins = Arrays.stream(allowedOriginsRaw.split(","))
-                .map(String::trim)
-                .toList();
-
         http
-            .cors(cors -> cors.configurationSource(request -> {
-                CorsConfiguration config = new CorsConfiguration();
-                List<String> origins = allowedOrigins.stream()
-                        .filter(o -> !o.isBlank())
-                        .collect(Collectors.toList());
-                if (!origins.isEmpty()) {
-                    config.setAllowedOrigins(origins);
-                } else {
-                    config.setAllowedOriginPatterns(List.of("*"));
-                }
-                config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-                config.setAllowedHeaders(List.of("*"));
-                config.setAllowCredentials(true);
-                config.setMaxAge(3600L);
-                return config;
-            }))
+            .cors(cors -> cors.configurationSource(corsConfigurationSource()))
             .csrf(csrf -> csrf.disable())
             .sessionManagement(session ->
                     session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
@@ -69,6 +54,7 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.GET, "/api/productos/*/resenas/resumen").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/logros").permitAll()
                 .requestMatchers("/error").permitAll()
+                .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                 // Admin-only
                 .requestMatchers(HttpMethod.GET, "/api/configuracion").hasAuthority("ADMIN")
                 // SEGURIDAD: El endpoint /api/setup/make-admin fue ELIMINADO intencionalmente.
@@ -89,5 +75,37 @@ public class SecurityConfig {
             .addFilterBefore(firebaseAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
+    }
+
+    @Bean
+    CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration config = new CorsConfiguration();
+        List<String> origins = Arrays.stream(allowedOriginsRaw.split(","))
+                .map(String::trim)
+                .filter(o -> !o.isBlank())
+                .collect(Collectors.toList());
+        List<String> originPatterns = Arrays.stream(allowedOriginPatternsRaw.split(","))
+                .map(String::trim)
+                .filter(o -> !o.isBlank())
+                .collect(Collectors.toList());
+
+        if (!origins.isEmpty()) {
+            config.setAllowedOrigins(origins);
+        }
+        if (!originPatterns.isEmpty()) {
+            config.setAllowedOriginPatterns(originPatterns);
+        }
+        if (origins.isEmpty() && originPatterns.isEmpty()) {
+            config.setAllowedOriginPatterns(List.of("*"));
+        }
+
+        config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        config.setAllowedHeaders(List.of("*"));
+        config.setAllowCredentials(true);
+        config.setMaxAge(3600L);
+
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", config);
+        return source;
     }
 }

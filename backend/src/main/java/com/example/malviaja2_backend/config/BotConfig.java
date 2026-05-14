@@ -24,6 +24,17 @@ public class BotConfig {
 
     @Bean
     public TelegramBotsApi telegramBotsApi(TelegramBotService telegramBotService) {
+        boolean enabled = telegramBotService.getConfiguredBotToken() != null
+                && !telegramBotService.getConfiguredBotToken().isBlank();
+        if (!enabled) {
+            log.info("Telegram desactivado: falta token o está vacío.");
+            try {
+                return new TelegramBotsApi(DefaultBotSession.class);
+            } catch (TelegramApiException fallbackEx) {
+                log.error("Error creando TelegramBotsApi sin bot: {}", fallbackEx.getMessage());
+                return null;
+            }
+        }
         try {
             // Forzar eliminación de webhook previo (si existía) para evitar
             // conflictos con long polling

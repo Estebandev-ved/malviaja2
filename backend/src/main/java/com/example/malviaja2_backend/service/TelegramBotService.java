@@ -6,7 +6,8 @@ import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.example.malviaja2_backend.model.Pedido;
 import com.example.malviaja2_backend.repository.PedidoRepository;
@@ -18,9 +19,10 @@ import java.util.Optional;
 import java.util.List;
 import java.util.ArrayList;
 
-@Slf4j
 @Service
 public class TelegramBotService extends TelegramLongPollingBot {
+
+    private static final Logger logger = LoggerFactory.getLogger(TelegramBotService.class);
 
     /**
      * FIX: TelegramLongPollingBot requiere el token en el CONSTRUCTOR.
@@ -29,6 +31,7 @@ public class TelegramBotService extends TelegramLongPollingBot {
      * Solución: inyectar por constructor con @Value directamente en el parámetro.
      */
     private final String botUsername;
+    private final String configuredBotToken;
     private final String adminChatId;
     private final PedidoRepository pedidoRepository;
     private final EmailNotificationService emailNotificationService;
@@ -40,11 +43,16 @@ public class TelegramBotService extends TelegramLongPollingBot {
             PedidoRepository pedidoRepository,
             EmailNotificationService emailNotificationService) {
         super(botToken); // Pasa el token al constructor base → disponible desde el inicio
+        this.configuredBotToken = botToken;
         this.botUsername = botUsername;
         this.adminChatId = adminChatId;
         this.pedidoRepository = pedidoRepository;
         this.emailNotificationService = emailNotificationService;
-        log.info("✅ TelegramBotService inicializado correctamente. Username: {}", botUsername);
+        logger.info("✅ TelegramBotService inicializado correctamente. Username: {}", botUsername);
+    }
+
+    public String getConfiguredBotToken() {
+        return configuredBotToken;
     }
 
     public String getAdminChatId() {
@@ -65,12 +73,12 @@ public class TelegramBotService extends TelegramLongPollingBot {
             String messageText = update.getMessage().getText();
             Long chatId = update.getMessage().getChatId();
 
-            log.info("Mensaje recibido de {}: {}", update.getMessage().getFrom().getUserName(), messageText);
+            logger.info("Mensaje recibido de {}: {}", update.getMessage().getFrom().getUserName(), messageText);
 
             if (messageText.equals("/start")) {
-                log.info("==========================================");
-                log.info("TU CHAT ID ES: {}", chatId);
-                log.info("==========================================");
+                logger.info("==========================================");
+                logger.info("TU CHAT ID ES: {}", chatId);
+                logger.info("==========================================");
                 
                 SendMessage response = new SendMessage();
                 response.setChatId(String.valueOf(chatId));
@@ -79,7 +87,7 @@ public class TelegramBotService extends TelegramLongPollingBot {
                 try {
                     execute(response);
                 } catch (TelegramApiException e) {
-                    log.error("Error al enviar el mensaje de bienvenida", e);
+                    logger.error("Error al enviar el mensaje de bienvenida", e);
                 }
             }
         } else if (update.hasCallbackQuery()) {
@@ -89,12 +97,12 @@ public class TelegramBotService extends TelegramLongPollingBot {
             Integer messageId = callbackQuery.getMessage().getMessageId();
             String caption = callbackQuery.getMessage().getCaption();
 
-            log.info("Boton presionado: {}", data);
+            logger.info("Boton presionado: {}", data);
 
             try {
                 String[] parts = data.split("_");
                 if (parts.length < 2) {
-                    log.warn("Callback con formato inesperado ignorado: {}", data);
+                    logger.warn("Callback con formato inesperado ignorado: {}", data);
                     return;
                 }
                 String action = parts[0];
@@ -111,10 +119,15 @@ public class TelegramBotService extends TelegramLongPollingBot {
                             pedido.setEstado("PREPARANDO");
                             statusMsg = "👨‍🍳 *Preparando tu viaje*";
                             // Acreditar puntos de fidelidad
-                            if (pedido.getUsuario() != null && pedido.getTotal() != null) {
-                                int puntos = (int) Math.round(pedido.getTotal() / 100);
-                                pedido.getUsuario().setPuntos(pedido.getUsuario().getPuntos() + puntos);
-                                log.info("🏆 {} puntos acreditados por Telegram al usuario del pedido #{}", puntos, pedido.getId());
+                            try {
+                                if (pedido.getUsuario() != null && pedido.getTotal() != null) {
+                                    int puntos = (int) Math.round(pedido.getTotal() / 100);
+                                    Integer actuales = pedido.getUsuario().getPuntos();
+                                    pedido.getUsuario().setPuntos((actuales != null ? actuales : 0) + puntos);
+                                    logger.info("🏆 {} puntos acreditados por Telegram al usuario del pedido #{}", puntos, pedido.getId());
+                                }
+                            } catch (Exception e) {
+                                logger.warn("No se pudo acreditar puntos por Telegram en pedido #{}: {}", pedido.getId(), e.getMessage());
                             }
                             try {
                                 String email = pedido.getUsuario() != null ? pedido.getUsuario().getEmail() : null;
@@ -180,7 +193,7 @@ public class TelegramBotService extends TelegramLongPollingBot {
                     execute(editMessage);
                 }
             } catch (Exception e) {
-                log.error("Error procesando callback", e);
+                logger.error("Error procesando callback", e);
             }
         }
     }
@@ -193,7 +206,7 @@ public class TelegramBotService extends TelegramLongPollingBot {
         try {
             execute(message);
         } catch (TelegramApiException e) {
-            log.error("Error al enviar mensaje a Telegram", e);
+            logger.error("Error al enviar mensaje a Telegram", e);
         }
     }
 }

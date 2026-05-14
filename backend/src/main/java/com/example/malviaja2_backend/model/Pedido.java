@@ -86,6 +86,10 @@ public class Pedido {
         this.total = total;
     }
 
+    public Double getTotal() {
+        return total;
+    }
+
     public void setCarritoJson(String carritoJson) {
         this.carritoJson = carritoJson;
     }

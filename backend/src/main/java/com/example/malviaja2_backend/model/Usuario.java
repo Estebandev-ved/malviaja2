@@ -89,4 +89,12 @@ public class Usuario {
     public void setTelefonoPorDefecto(String telefonoPorDefecto) {
         this.telefonoPorDefecto = telefonoPorDefecto;
     }
+
+    public Integer getPuntos() {
+        return puntos;
+    }
+
+    public void setPuntos(Integer puntos) {
+        this.puntos = puntos;
+    }
 }
