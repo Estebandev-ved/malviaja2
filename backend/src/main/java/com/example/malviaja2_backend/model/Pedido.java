@@ -27,6 +27,10 @@ public class Pedido {
     @Column(nullable = false)
     private Double total;
 
+    private Double subtotal;
+    private Double costoEnvio;
+    private Double descuento;
+
     @Column(columnDefinition = "TEXT")
     private String carritoJson;
 

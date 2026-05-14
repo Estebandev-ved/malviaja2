@@ -18,4 +18,10 @@ public interface PedidoRepository extends JpaRepository<Pedido, Long> {
 
     @Query("select count(distinct p.usuario.id) from Pedido p where p.estado = 'ENTREGADO'")
     long countUsuariosConPedidosEntregados();
+
+    @Query("select count(distinct p.usuario.id) from Pedido p where p.estado = 'ENTREGADO' and p.descuento > 0")
+    long countUsuariosConPromo2x1Aplicada();
+
+    @Query("select count(distinct p.usuario.id) from Pedido p where p.usuario.id = :usuarioId and p.estado = 'ENTREGADO' and p.descuento > 0")
+    long countPromo2x1UsadaPorUsuario(java.lang.Long usuarioId);
 }

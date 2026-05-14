@@ -30,6 +30,13 @@ public class ProductoController {
         return ResponseEntity.ok(productoService.obtenerTodos());
     }
 
+    @GetMapping("/{id}")
+    public ResponseEntity<Producto> obtenerProducto(@PathVariable Long id) {
+        return productoService.buscarPorId(id)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
+    }
+
     /** Crear nuevo producto — solo ADMIN */
     @PostMapping
     @PreAuthorize("hasAuthority('ADMIN')")
@@ -41,15 +48,26 @@ public class ProductoController {
     /**
      * Actualizar producto existente — solo ADMIN.
      * Retorna 404 si el ID no existe para evitar crear registros fantasma.
+     * IMPORTANTE: Copia campos sobre la entidad manejada (con @Version) para evitar
+     * "Detached entity with uninitialized version value" de Hibernate.
      */
     @PutMapping("/{id}")
     @PreAuthorize("hasAuthority('ADMIN')")
-    public ResponseEntity<?> actualizarProducto(@PathVariable Long id, @RequestBody Producto producto) {
+    public ResponseEntity<?> actualizarProducto(@PathVariable Long id, @RequestBody Producto cambios) {
         return productoService.buscarPorId(id)
                 .map(existente -> {
-                    producto.setId(id);
-                    log.info("Admin actualizando producto #{}: {}", id, producto.getNombre());
-                    return ResponseEntity.ok(productoService.guardarProducto(producto));
+                    if (existente.getVersion() == null) {
+                        productoService.inicializarVersion(id);
+                        existente.setVersion(0L);
+                    }
+                    existente.setNombre(cambios.getNombre());
+                    existente.setDescripcion(cambios.getDescripcion());
+                    existente.setPrecio(cambios.getPrecio());
+                    existente.setDosis(cambios.getDosis());
+                    existente.setStock(cambios.getStock());
+                    existente.setImageUrl(cambios.getImageUrl());
+                    log.info("Admin actualizando producto #{}: {}", id, existente.getNombre());
+                    return ResponseEntity.ok(productoService.guardarProducto(existente));
                 })
                 .orElse(ResponseEntity.notFound().build());
     }

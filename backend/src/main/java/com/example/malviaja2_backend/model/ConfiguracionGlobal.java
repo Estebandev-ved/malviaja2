@@ -51,8 +51,18 @@ public class ConfiguracionGlobal {
     private String promo2x1Titulo = "Lanzamiento 2x1";
     @jakarta.persistence.Column(length = 500)
     private String promo2x1Subtitulo = "Solo para las primeras 20 compras completadas de 20 usuarios unicos";
-    @jakarta.persistence.Column(length = 2000)
+    @jakarta.persistence.Column(columnDefinition = "TEXT")
     private String promo2x1Terminos = "Promo 2x1 solo aplica en Brownie Fuerte de $15.000 COP. Valido 1 beneficio por cuenta. No acumulable. Aplica en pedidos con estado ENTREGADO.";
+
+    // Nuevas opciones flexibles
+    private String promoStartTime = "22:00";
+    private String promoEndTime = "02:00";
+    private String promoTipo = "2X1"; // 2X1, 3X2, FIXED, PERCENT
+    private String promoTarget = "NUEVOS"; // NUEVOS, TODOS
+    private Double promoValue = 14990.0; // 2X1=precio x2 unid, FIXED=monto desc, PERCENT=porcentaje
+    private String promoProducts = "Brownie Fuerte"; // Comma separated names or "ALL"
+    private String promoMode = "PROGRAMADA"; // MANUAL, PROGRAMADA
+    private Integer promoDuration = 4; // Duración en horas
 
 
     public void setId(Long id) {
@@ -110,4 +120,28 @@ public class ConfiguracionGlobal {
     public Double getCompraMinima() {
         return compraMinima;
     }
+
+    public String getPromoStartTime() { return promoStartTime; }
+    public void setPromoStartTime(String promoStartTime) { this.promoStartTime = promoStartTime; }
+
+    public String getPromoEndTime() { return promoEndTime; }
+    public void setPromoEndTime(String promoEndTime) { this.promoEndTime = promoEndTime; }
+
+    public String getPromoTipo() { return promoTipo; }
+    public void setPromoTipo(String promoTipo) { this.promoTipo = promoTipo; }
+
+    public String getPromoTarget() { return promoTarget; }
+    public void setPromoTarget(String promoTarget) { this.promoTarget = promoTarget; }
+
+    public Double getPromoValue() { return promoValue; }
+    public void setPromoValue(Double promoValue) { this.promoValue = promoValue; }
+
+    public String getPromoProducts() { return promoProducts; }
+    public void setPromoProducts(String promoProducts) { this.promoProducts = promoProducts; }
+
+    public String getPromoMode() { return promoMode; }
+    public void setPromoMode(String promoMode) { this.promoMode = promoMode; }
+
+    public Integer getPromoDuration() { return promoDuration; }
+    public void setPromoDuration(Integer promoDuration) { this.promoDuration = promoDuration; }
 }

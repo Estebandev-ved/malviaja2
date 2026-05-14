@@ -40,4 +40,12 @@ public class ProductoService {
         productoRepository.deleteById(id);
         log.info("Producto #{} eliminado de la BD.", id);
     }
+
+    @org.springframework.transaction.annotation.Transactional
+    public void inicializarVersion(Long id) {
+        int actualizados = productoRepository.inicializarVersion(id);
+        if (actualizados > 0) {
+            log.info("Version inicializada a 0 para producto #{} (legacy data)", id);
+        }
+    }
 }

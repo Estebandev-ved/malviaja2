@@ -155,9 +155,25 @@ const MisPedidos = ({ isEmbedded = false }) => {
                   })() : <span style={{ color: 'var(--color-text-light)' }}>Productos no detallados</span>}
                 </div>
                 
-                <div className="pedido-total-row">
-                  <span>Total Pagado:</span>
-                  <span style={{ color: 'var(--color-primary)' }}>${pedido.total.toLocaleString()}</span>
+                <div style={{ borderTop: '1px solid #e0e0e0', marginTop: '1rem', paddingTop: '0.75rem' }}>
+                  <div className="pedido-item-row" style={{ color: 'var(--color-text-light)' }}>
+                    <span>Subtotal</span>
+                    <span>${(pedido.subtotal || 0).toLocaleString()}</span>
+                  </div>
+                  <div className="pedido-item-row" style={{ color: 'var(--color-text-light)' }}>
+                    <span>Envío</span>
+                    <span>{pedido.costoEnvio && pedido.costoEnvio > 0 ? `$${pedido.costoEnvio.toLocaleString()}` : <span style={{ color: '#2e7d32' }}>Gratis</span>}</span>
+                  </div>
+                  {pedido.descuento > 0 && (
+                    <div className="pedido-item-row" style={{ color: '#2e7d32' }}>
+                      <span>Descuento</span>
+                      <span>-${pedido.descuento.toLocaleString()}</span>
+                    </div>
+                  )}
+                </div>
+                <div className="pedido-total-row" style={{ marginTop: '0.5rem' }}>
+                  <span style={{ fontWeight: 'bold' }}>Total Pagado:</span>
+                  <span style={{ color: 'var(--color-primary)', fontWeight: 'bold' }}>${pedido.total.toLocaleString()}</span>
                 </div>
               </div>
             </div>

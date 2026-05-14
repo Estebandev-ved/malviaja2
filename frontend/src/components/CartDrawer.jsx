@@ -10,7 +10,15 @@ const AnimatedTotal = ({ value }) => {
 };
 
 const CartDrawer = () => {
-  const { isCartOpen, toggleCart, carrito, removeFromCart, user, cuponesActivos } = useStore();
+  const {
+    isCartOpen,
+    toggleCart,
+    carrito,
+    removeFromCart,
+    updateCartQuantity,
+    user,
+    cuponesActivos
+  } = useStore();
   const navigate = useNavigate();
 
   if (!isCartOpen) return null;
@@ -53,9 +61,28 @@ const CartDrawer = () => {
                   <h4>{item.nombre}</h4>
                   <p className="text-secondary font-bold">${item.precio.toLocaleString()} x {item.cantidad}</p>
                 </div>
-                <button className="cart-item-remove" onClick={() => removeFromCart(item.id)}>
-                  <Trash2 size={20} />
-                </button>
+                <div className="cart-item-actions">
+                  <div className="cart-qty">
+                    <button
+                      className="cart-qty-btn"
+                      aria-label={`Restar ${item.nombre}`}
+                      onClick={() => updateCartQuantity(item.id, (Number(item.cantidad) || 0) - 1)}
+                    >
+                      -
+                    </button>
+                    <span className="cart-qty-value">{item.cantidad}</span>
+                    <button
+                      className="cart-qty-btn"
+                      aria-label={`Sumar ${item.nombre}`}
+                      onClick={() => updateCartQuantity(item.id, (Number(item.cantidad) || 0) + 1)}
+                    >
+                      +
+                    </button>
+                  </div>
+                  <button className="cart-item-remove" onClick={() => removeFromCart(item.id)} aria-label={`Quitar ${item.nombre}`}>
+                    <Trash2 size={20} />
+                  </button>
+                </div>
               </div>
             ))
           )}

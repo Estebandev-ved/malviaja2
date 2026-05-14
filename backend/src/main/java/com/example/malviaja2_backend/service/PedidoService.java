@@ -88,13 +88,7 @@ public class PedidoService {
                 });
 
         // 2. Calcular total en el servidor de forma segura (ignora el total enviado por el cliente)
-        double totalCalculadoSeguro = calcularTotalSeguro(request.getCarrito(), usuario);
-
-        // Validar compra mínima desde la configuración global con el total calculado
-        double compraMinima = configuracionService.obtenerConfiguracion().getCompraMinima();
-        if (totalCalculadoSeguro < compraMinima) {
-            throw new IllegalStateException("El total del pedido (" + totalCalculadoSeguro + ") no alcanza el mínimo requerido: $" + compraMinima);
-        }
+        ResultadoTotal res = calcularTotalSeguro(request.getCarrito(), usuario);
 
         usuario.setDireccionPorDefecto(HtmlUtils.htmlEscape(request.getDireccion()));
         usuario.setTelefonoPorDefecto(HtmlUtils.htmlEscape(request.getTelefono()));
@@ -115,7 +109,10 @@ public class PedidoService {
         pedido.setNombreReceptor(HtmlUtils.htmlEscape(request.getNombre()));
         pedido.setTelefono(HtmlUtils.htmlEscape(request.getTelefono()));
         pedido.setDireccionEnvio(HtmlUtils.htmlEscape(request.getDireccion()));
-        pedido.setTotal(totalCalculadoSeguro);
+        pedido.setTotal(res.total);
+        pedido.setSubtotal(res.subtotal);
+        pedido.setCostoEnvio(res.envio);
+        pedido.setDescuento(res.descuento);
         pedido.setCarritoJson(request.getCarrito());
         pedido.setEstado("PENDIENTE");
 
@@ -128,7 +125,7 @@ public class PedidoService {
 
         // 4.1 Analizar comprobante con IA para validar pago
         OcrExtractionResult extraction = geminiOcrService.extraerComprobante(comprobante);
-        aplicarResultadoOcr(pedido, extraction, totalCalculadoSeguro);
+        aplicarResultadoOcr(pedido, extraction, res.total);
         pedido = pedidoRepository.save(pedido);
         log.info("✅ Pedido #{} guardado en BD. Cliente: {}", pedido.getId(), usuario.getEmail());
 
@@ -170,7 +167,7 @@ public class PedidoService {
         }
 
         boolean montoCoincide = extraction.getMonto() != null && totalPedido != null
-                && Math.round(totalPedido) == extraction.getMonto();
+                && Math.round(totalPedido) == extraction.getMonto().longValue();
 
         boolean referenciaUnica = extraction.getReferencia() != null
                 && pedidoRepository.findByReferenciaPago(extraction.getReferencia()).isEmpty();
@@ -195,7 +192,7 @@ public class PedidoService {
         if (!montoCoincide) {
             pedido.setEstado("REVISION_MANUAL");
             log.info("Pedido #{} → REVISION_MANUAL: monto OCR ({}) no coincide con total del pedido ({})",
-                    pedido.getId(), extraction.getMonto(), Math.round(totalPedido));
+                    pedido.getId(), extraction.getMonto(), totalPedido != null ? Math.round(totalPedido) : "null");
             return;
         }
 
@@ -281,7 +278,15 @@ public class PedidoService {
      * Aplica la promoción 2x1 si corresponde y el usuario es elegible.
      */
     @SuppressWarnings("unchecked")
-    private double calcularTotalSeguro(String carritoJson, Usuario usuario) throws Exception {
+    private static class ResultadoTotal {
+        double total, subtotal, envio, descuento;
+        ResultadoTotal(double total, double subtotal, double envio, double descuento) {
+            this.total = total; this.subtotal = subtotal; this.envio = envio; this.descuento = descuento;
+        }
+    }
+
+    private ResultadoTotal calcularTotalSeguro(String carritoJson, Usuario usuario) throws Exception {
+        com.example.malviaja2_backend.model.ConfiguracionGlobal config = configuracionService.obtenerConfiguracion();
         double subtotal = 0.0;
         int cantidadBrowniesFuerte = 0;
         double precioBrownieFuerte = 15000.0; // Precio base asumido para la promo
@@ -306,37 +311,112 @@ public class PedidoService {
             double precioTotalProducto = producto.getPrecio() * cantidadSolicitada;
             subtotal += precioTotalProducto;
 
-            // Identificar si es el producto de la promo (Asumiendo que es el Brownie Fuerte)
-            // Se puede mejorar buscando por un flag específico o nombre exacto si es necesario
-            if (producto.getNombre().toLowerCase().contains("brownie fuerte")) {
+            // Identificar si es el producto de la promo
+            String nombreLimpio = producto.getNombre().toLowerCase().trim();
+            String promoProdsRaw = config.getPromoProducts() != null ? config.getPromoProducts() : "Brownie Fuerte";
+            String[] promoKeywords = promoProdsRaw.toLowerCase().split(",");
+
+            boolean isPromoProduct = false;
+            for (String keyword : promoKeywords) {
+                String kw = keyword.trim();
+                if ("all".equals(kw)) {
+                    isPromoProduct = true;
+                    break;
+                }
+                if (nombreLimpio.contains(kw)) {
+                    isPromoProduct = true;
+                    break;
+                }
+            }
+
+            if (isPromoProduct) {
                 cantidadBrowniesFuerte += cantidadSolicitada;
                 precioBrownieFuerte = producto.getPrecio();
             }
         }
 
-        // Lógica de Promoción 2x1
-        com.example.malviaja2_backend.model.ConfiguracionGlobal config = configuracionService.obtenerConfiguracion();
-        boolean usuarioEligible = usuario.getPrimerCompraRealizada() == null || !usuario.getPrimerCompraRealizada();
-        
-        if (config.getPromo2x1Enabled() && usuarioEligible && cantidadBrowniesFuerte >= 2) {
-            // Descontar 1 brownie fuerte
-            subtotal -= precioBrownieFuerte;
-            log.info("Descuento 2x1 aplicado para el usuario {} (Ahorro: {})", usuario.getEmail(), precioBrownieFuerte);
-        } else if (cantidadBrowniesFuerte >= 2 && !usuarioEligible) {
-            log.warn("Usuario {} intentó usar el 2x1 pero ya no es elegible. Cobrando precio full.", usuario.getEmail());
+        double subtotalPrePromo = subtotal;
+
+        if (subtotalPrePromo < config.getCompraMinima()) {
+            throw new IllegalStateException("El subtotal del pedido ($" + subtotalPrePromo + ") no alcanza el mínimo requerido: $" + config.getCompraMinima());
         }
 
-        // Envío (simplificado, asumiendo un costo fijo o consultando la config si aplica)
-        // Por simplicidad, sumamos el costo base de envío si el subtotal no supera el minFree
+        boolean isPromoActive = config.getPromo2x1Enabled() != null && config.getPromo2x1Enabled();
+
+        if (isPromoActive && "PROGRAMADA".equalsIgnoreCase(config.getPromoMode())) {
+            try {
+                String startStr = config.getPromoStartTime() != null ? config.getPromoStartTime() : "22:00";
+                int duration = config.getPromoDuration() != null ? config.getPromoDuration() : 4;
+                java.time.LocalTime now = java.time.LocalTime.now();
+                java.time.LocalTime start = java.time.LocalTime.parse(startStr);
+                java.time.LocalTime end = start.plusHours(duration);
+
+                if (start.isBefore(end)) {
+                    isPromoActive = !now.isBefore(start) && !now.isAfter(end);
+                } else {
+                    isPromoActive = !now.isBefore(start) || !now.isAfter(end);
+                }
+            } catch (Exception e) {
+                log.error("Error al validar horario de promo: {}", e.getMessage());
+                isPromoActive = false;
+            }
+        }
+
+        // --- VALIDACIONES ANTIABUSO ---
+        // 1. Verificar límite global de la promo
+        if (isPromoActive) {
+            int maxUsuarios = config.getPromo2x1MaxUsuarios() != null ? config.getPromo2x1MaxUsuarios() : 20;
+            long usuariosConPromo = pedidoRepository.countUsuariosConPromo2x1Aplicada();
+            if (usuariosConPromo >= maxUsuarios) {
+                log.warn("Promo 2x1 BLOQUEADA: se alcanzó el límite de {} usuarios únicos.", maxUsuarios);
+                isPromoActive = false;
+            }
+        }
+
+        // 2. Verificar si este usuario ya usó la promo (1 solo beneficio por cuenta)
+        if (isPromoActive && usuario.getId() != null) {
+            long yaUsoPromo = pedidoRepository.countPromo2x1UsadaPorUsuario(usuario.getId());
+            if (yaUsoPromo > 0) {
+                log.warn("Usuario {} ya usó la promo 2x1 anteriormente. No se aplica nuevamente.", usuario.getEmail());
+                isPromoActive = false;
+            }
+        }
+
+        boolean targetMatches = true;
+        if ("NUEVOS".equalsIgnoreCase(config.getPromoTarget())) {
+            targetMatches = usuario.getPrimerCompraRealizada() == null || !usuario.getPrimerCompraRealizada();
+        }
+
+        if (isPromoActive && targetMatches) {
+            String tipo = config.getPromoTipo() != null ? config.getPromoTipo() : "2X1";
+
+            if ("2X1".equalsIgnoreCase(tipo) && cantidadBrowniesFuerte >= 2) {
+                double precio2Unidades = (config.getPromoValue() != null && config.getPromoValue() > 0)
+                    ? config.getPromoValue()
+                    : precioBrownieFuerte;
+                double descuento = Math.max(0, (precioBrownieFuerte * 2) - precio2Unidades);
+                subtotal -= descuento;
+                log.info("Promo 2x1 aplicada: 2 unid. por ${} (ahorro ${})", precio2Unidades, descuento);
+            } else if ("PERCENT".equalsIgnoreCase(tipo) && config.getPromoValue() != null && config.getPromoValue() > 0) {
+                double discount = subtotal * (config.getPromoValue() / 100.0);
+                subtotal -= discount;
+                log.info("Promo Descuento {}% aplicada: -{}", config.getPromoValue(), discount);
+            } else if ("FIXED".equalsIgnoreCase(tipo) && config.getPromoValue() != null && config.getPromoValue() > 0) {
+                subtotal -= config.getPromoValue();
+                log.info("Promo Descuento Fijo ${} aplicada", config.getPromoValue());
+            }
+        } else if (isPromoActive && !targetMatches && cantidadBrowniesFuerte >= 2) {
+            log.warn("Usuario {} no elegible para promo (Target: {}).", usuario.getEmail(), config.getPromoTarget());
+        }
+
         double envio = 0.0;
-        if (subtotal < config.getDeliveryMinFree()) {
-            // Asignar un costo de envío base si es menor al mínimo para envío gratis
-            // Lo ideal sería calcularlo por km, pero asignamos un base seguro
-            envio = 10000.0; // Costo base fijo como medida de seguridad (puedes ajustar)
+        if (subtotalPrePromo < config.getDeliveryMinFree()) {
+            envio = 10000.0;
             log.info("Añadiendo costo de envío fijo de {}", envio);
         }
 
-        return subtotal + envio;
+        double descuentoTotal = Math.max(0, subtotalPrePromo - subtotal);
+        return new ResultadoTotal(subtotal + envio, subtotalPrePromo, envio, descuentoTotal);
     }
 
 
@@ -437,7 +517,7 @@ public class PedidoService {
         if (extraction.getError() != null) return "Error OCR: " + extraction.getError();
 
         boolean montoCoincide = extraction.getMonto() != null && total != null
-                && Math.round(total) == extraction.getMonto();
+                && Math.round(total) == extraction.getMonto().longValue();
         boolean altaConfianza = extraction.getConfianzaExtraccion() != null
                 && extraction.getConfianzaExtraccion() >= 0.8;
 
@@ -461,6 +541,7 @@ public class PedidoService {
         return "monto=" + monto + ", total=" + totalStr + ", ref=" + ref + ", fecha=" + fecha + ", entidad=" + entidad + ", conf=" + conf;
     }
 
+    @SuppressWarnings("unchecked")
     private String formatCarrito(String carritoJson) {
         try {
             List<Map<String, Object>> items = objectMapper.readValue(carritoJson, List.class);

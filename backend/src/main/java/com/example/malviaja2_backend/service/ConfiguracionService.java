@@ -56,6 +56,14 @@ public class ConfiguracionService {
         if (conf.getPromo2x1Terminos() == null) {
             conf.setPromo2x1Terminos("Promo 2x1 solo aplica en Brownie Fuerte de $15.000 COP (alta dosis/mayor miligramos).\nEl beneficio es 2 brownies por el precio de 1 (2x1) dentro de esa referencia.\nValido para 1 beneficio por cuenta.\nAplica solo en productos seleccionados de la promo.\nNo acumulable con otros cupones o promociones.\nSolo cuentan pedidos con estado ENTREGADO.\nSujeto a disponibilidad y verificacion de compra.\nEnvio no incluido salvo indicacion expresa.\nFinaliza automaticamente al completar 20 compras en 20 usuarios unicos.");
         }
+        if (conf.getPromoStartTime() == null) conf.setPromoStartTime("22:00");
+        if (conf.getPromoEndTime() == null) conf.setPromoEndTime("02:00");
+        if (conf.getPromoTipo() == null) conf.setPromoTipo("2X1");
+        if (conf.getPromoTarget() == null) conf.setPromoTarget("NUEVOS");
+        if (conf.getPromoValue() == null) conf.setPromoValue(14990.0);
+        if (conf.getPromoProducts() == null) conf.setPromoProducts("Brownie Fuerte");
+        if (conf.getPromoMode() == null) conf.setPromoMode("PROGRAMADA");
+        if (conf.getPromoDuration() == null) conf.setPromoDuration(4);
         actualizarEstadoPromo(conf);
         return conf;
     }

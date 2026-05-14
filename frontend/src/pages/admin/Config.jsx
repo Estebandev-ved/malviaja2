@@ -64,7 +64,15 @@ const ConfigAdmin = () => {
     promo2x1GroupLink: '',
     promo2x1Titulo: 'Lanzamiento 2x1',
     promo2x1Subtitulo: 'Solo para las primeras 20 compras completadas de 20 usuarios unicos',
-    promo2x1Terminos: 'Promo 2x1 solo aplica en Brownie Fuerte de $15.000 COP (alta dosis/mayor miligramos).\nEl beneficio es 2 brownies por el precio de 1 (2x1) dentro de esa referencia.\nValido para 1 beneficio por cuenta.\nAplica solo en productos seleccionados de la promo.\nNo acumulable con otros cupones o promociones.\nSolo cuentan pedidos con estado ENTREGADO.\nSujeto a disponibilidad y verificacion de compra.\nEnvio no incluido salvo indicacion expresa.\nFinaliza automaticamente al completar 20 compras en 20 usuarios unicos.'
+    promo2x1Terminos: 'Promo 2x1 solo aplica en Brownie Fuerte de $15.000 COP (alta dosis/mayor miligramos).\nEl beneficio es 2 brownies por el precio de 1 (2x1) dentro de esa referencia.\nValido para 1 beneficio por cuenta.\nAplica solo en productos seleccionados de la promo.\nNo acumulable con otros cupones o promociones.\nSolo cuentan pedidos con estado ENTREGADO.\nSujeto a disponibilidad y verificacion de compra.\nEnvio no incluido salvo indicacion expresa.\nFinaliza automaticamente al completar 20 compras en 20 usuarios unicos.',
+    promoStartTime: '22:00',
+    promoEndTime: '02:00',
+    promoTipo: '2X1',
+    promoTarget: 'NUEVOS',
+    promoValue: 0,
+    promoProducts: 'Brownie Fuerte',
+    promoMode: 'PROGRAMADA',
+    promoDuration: 4
   });
 
   useEffect(() => {
@@ -161,6 +169,39 @@ const ConfigAdmin = () => {
           <Field label="Máximo de Usuarios" description="Se desactiva automáticamente al llegar a este número de compras completadas en usuarios únicos.">
             <input type="number" value={config.promo2x1MaxUsuarios} onChange={e => handleChange('promo2x1MaxUsuarios', Number(e.target.value))} style={inputStyle} />
           </Field>
+          <Field label="Modo de Activación" description="Define si la promo se activa por horario o manualmente.">
+            <select value={config.promoMode} onChange={e => handleChange('promoMode', e.target.value)} style={inputStyle}>
+              <option value="PROGRAMADA">Programada (Por Horario)</option>
+              <option value="MANUAL">Manual (Activa Ahora)</option>
+            </select>
+          </Field>
+          <Field label="Hora Inicio (HH:MM)" description="Hora en que comienza la cuenta regresiva (solo modo Programada).">
+            <input type="text" value={config.promoStartTime} onChange={e => handleChange('promoStartTime', e.target.value)} style={inputStyle} placeholder="22:00" />
+          </Field>
+          <Field label="Duración (Horas)" description="Cuánto tiempo estará activa la promo (solo modo Programada).">
+            <input type="number" value={config.promoDuration} onChange={e => handleChange('promoDuration', Number(e.target.value))} style={inputStyle} min="1" max="24" />
+          </Field>
+          <Field label="Tipo de Promo" description="Lógica a aplicar en el carrito.">
+            <select value={config.promoTipo} onChange={e => handleChange('promoTipo', e.target.value)} style={inputStyle}>
+              <option value="2X1">2x1 (Brownie Fuerte)</option>
+              <option value="PERCENT">Descuento Porcentaje (%)</option>
+              <option value="FIXED">Descuento Fijo ($)</option>
+            </select>
+          </Field>
+          <Field label="Público Objetivo" description="A quién aplica la promoción.">
+            <select value={config.promoTarget} onChange={e => handleChange('promoTarget', e.target.value)} style={inputStyle}>
+              <option value="NUEVOS">Solo Clientes Nuevos</option>
+              <option value="TODOS">Todos los Clientes</option>
+            </select>
+          </Field>
+          <Field label="Productos en Promo" description="Nombres separados por coma o 'ALL' para aplicar a todo.">
+            <input type="text" value={config.promoProducts} onChange={e => handleChange('promoProducts', e.target.value)} style={inputStyle} placeholder="Brownie Fuerte, Brownie Clasico" />
+          </Field>
+          {(config.promoTipo === 'PERCENT' || config.promoTipo === 'FIXED') && (
+            <Field label="Valor del Descuento" description={config.promoTipo === 'PERCENT' ? 'Porcentaje (0-100)' : 'Monto en pesos ($)'}>
+              <input type="number" value={config.promoValue} onChange={e => handleChange('promoValue', Number(e.target.value))} style={inputStyle} />
+            </Field>
+          )}
           <Field label="Link Grupo U" description="URL del grupo donde se comparte la promo.">
             <input type="url" value={config.promo2x1GroupLink} onChange={e => handleChange('promo2x1GroupLink', e.target.value)} style={inputStyle} />
           </Field>

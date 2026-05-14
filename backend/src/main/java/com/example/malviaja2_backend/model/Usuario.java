@@ -35,6 +35,9 @@ public class Usuario {
     @Column(name = "primer_compra_realizada")
     private Boolean primerCompraRealizada = false;
 
+    @Column(name = "promo_2x1_usada")
+    private Boolean promo2x1Usada = false;
+
     @Column(name = "ultima_compra")
     private LocalDateTime ultimaCompra;
 
@@ -96,5 +99,13 @@ public class Usuario {
 
     public void setPuntos(Integer puntos) {
         this.puntos = puntos;
+    }
+
+    public Boolean getPromo2x1Usada() {
+        return promo2x1Usada != null ? promo2x1Usada : false;
+    }
+
+    public void setPromo2x1Usada(Boolean promo2x1Usada) {
+        this.promo2x1Usada = promo2x1Usada;
     }
 }

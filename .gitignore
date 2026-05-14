@@ -1,0 +1,23 @@
+# OS
+Thumbs.db
+.DS_Store
+
+# Dev artifacts
+nul
+NUL
+port_check.txt
+
+# Backend
+backend/target/
+backend/*.log
+backend/*.log.*
+
+# Frontend
+frontend/dist/
+frontend/node_modules/
+frontend/.env
+frontend/.env.local
+
+# IDE
+.vscode/settings.json
+!.vscode/extensions.json

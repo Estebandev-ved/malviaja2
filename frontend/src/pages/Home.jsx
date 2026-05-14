@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { Star, Target, Sparkles, FlaskConical, Clock, ShieldCheck, Zap, Lock, Percent, Timer, Megaphone, Trophy, Gift, ShoppingBag, Users, CheckCircle2, Crown, BadgeCheck, ArrowUpRight, Package, Info } from 'lucide-react';
+import { Star, Target, Sparkles, FlaskConical, Clock, ShieldCheck, Zap, Lock, Percent, Timer, Megaphone, Trophy, Gift, ShoppingBag, Users, CheckCircle2, Crown, BadgeCheck, ArrowUpRight, Package, Info, FileText } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import useStore from '../store/useStore';
 import { apiFetch, authFetch } from '../api';
@@ -90,6 +90,8 @@ const Home = () => {
       }
     };
     loadPromo();
+    const interval = setInterval(loadPromo, 5000);
+    return () => clearInterval(interval);
   }, []);
 
   useEffect(() => {
@@ -177,8 +179,138 @@ const Home = () => {
     setTimeout(() => window.location.href = '/comestibles?promo=2x1', 2500);
   };
 
+  // Lógica del contador para la promo (10 PM + 4 horas)
+  const [timeLeft, setTimeLeft] = useState({ h: 0, m: 0, s: 0, active: false });
+  
+  useEffect(() => {
+    const calculateTime = () => {
+      // Si el modo es MANUAL, la promo está activa siempre que esté habilitada
+      if (promoConfig?.promoMode === 'MANUAL') {
+        return { h: 0, m: 0, s: 0, active: true };
+      }
+
+      const now = new Date();
+      // Usar hora configurada o defecto 22:00
+      const startStr = promoConfig?.promoStartTime || '22:00';
+      const [startH, startM] = startStr.split(':').map(Number);
+      
+      const target = new Date();
+      target.setHours(startH || 22, startM || 0, 0, 0);
+      
+      let diff = target - now;
+      
+      if (diff <= 0) {
+        // La promo está ACTIVA por N horas desde el inicio
+        const duration = promoConfig?.promoDuration || 4;
+        const endPromo = new Date(target);
+        endPromo.setHours(target.getHours() + duration);
+        const diffEnd = endPromo - now;
+        
+        if (diffEnd > 0) {
+          return { h: 0, m: 0, s: 0, active: true };
+        }
+        target.setDate(target.getDate() + 1);
+        diff = target - now;
+      }
+
+      const h = Math.floor(diff / (1000 * 60 * 60));
+      const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+      const s = Math.floor((diff % (1000 * 60)) / 1000);
+      return { h, m, s, active: false };
+    };
+
+    const timer = setInterval(() => {
+      if (promoConfig) setTimeLeft(calculateTime());
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [promoConfig]);
+
   return (
     <div className="home">
+      {/* Banner de Promo Lanzamiento */}
+      <div className={`promo-banner ${timeLeft.active ? 'active' : ''}`} style={{ 
+        background: 'linear-gradient(90deg, #000000 0%, #111111 50%, #000000 100%)', 
+        color: 'white', 
+        padding: '0.6rem 1rem', 
+        textAlign: 'center', 
+        fontSize: '0.9rem', 
+        fontWeight: 'bold',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: '1.2rem',
+        position: 'sticky',
+        top: 0,
+        zIndex: 1000,
+        boxShadow: '0 4px 15px rgba(0,0,0,0.6)',
+        borderBottom: '1px solid rgba(251, 192, 45, 0.5)'
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '1px', fontSize: '0.9rem' }}>
+          {timeLeft.active ? (
+            <>
+              <Zap size={18} style={{ color: 'var(--color-secondary)' }} />
+              <span>{promoConfig?.promo2x1Titulo || 'PROMO 2X1 ACTIVADA'}</span>
+            </>
+          ) : (
+            <>
+              <Clock size={18} style={{ color: 'var(--color-secondary)' }} />
+              <span>Próxima Promo en:</span>
+            </>
+          )}
+        </div>
+        
+        {!timeLeft.active && (
+          <div style={{ 
+            display: 'flex', 
+            gap: '0.4rem', 
+            fontFamily: 'monospace', 
+            fontSize: '1.2rem', 
+            fontWeight: '900',
+            background: '#000000',
+            padding: '0.3rem 0.8rem',
+            borderRadius: '12px',
+            border: '2px solid rgba(251, 192, 45, 0.6)',
+            color: 'var(--color-secondary)',
+            boxShadow: '0 0 15px rgba(0,0,0,0.8), inset 0 0 5px rgba(251, 192, 45, 0.2)'
+          }}>
+            <span style={{ minWidth: '1.5rem' }}>{String(timeLeft.h).padStart(2, '0')}</span>
+            <span style={{ opacity: 0.5 }}>:</span>
+            <span style={{ minWidth: '1.5rem' }}>{String(timeLeft.m).padStart(2, '0')}</span>
+            <span style={{ opacity: 0.5 }}>:</span>
+            <span style={{ minWidth: '1.5rem' }}>{String(timeLeft.s).padStart(2, '0')}</span>
+          </div>
+        )}
+
+        <button 
+          onClick={handlePromoClick} 
+          disabled={!timeLeft.active}
+          style={{ 
+            background: timeLeft.active ? 'var(--color-secondary)' : 'rgba(255,255,255,0.1)', 
+            color: timeLeft.active ? 'var(--color-primary-dark)' : 'rgba(255,255,255,0.5)', 
+            border: 'none',
+            padding: '0.6rem 1.5rem',
+            borderRadius: '10px',
+            fontSize: '0.9rem',
+            fontWeight: '900',
+            cursor: timeLeft.active ? 'pointer' : 'not-allowed',
+            transition: 'all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)',
+            textTransform: 'uppercase',
+            letterSpacing: '1px',
+            boxShadow: timeLeft.active ? '0 0 20px rgba(251, 192, 45, 0.5)' : 'none',
+            transform: timeLeft.active ? 'scale(1)' : 'scale(0.95)'
+          }}
+        >
+          {timeLeft.active ? (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <Zap size={16} fill="currentColor" />
+              <span>Aprovechar Promo</span>
+            </div>
+          ) : (
+            `Promo en ${String(timeLeft.h).padStart(2, '0')}:${String(timeLeft.m).padStart(2, '0')}:${String(timeLeft.s).padStart(2, '0')}`
+          )}
+        </button>
+      </div>
       {/* Hero Section */}
       <section className="hero" ref={heroRef} data-reveal>
         <div className="container hero__container">
@@ -515,7 +647,7 @@ const Home = () => {
                   </button>
                   
                   <div style={{ fontSize: '0.9rem', color: '#b0b0b0', marginTop: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.4rem', background: 'rgba(0,0,0,0.2)', padding: '0.4rem 0.8rem', borderRadius: '50px', border: '1px solid rgba(255,255,255,0.05)' }}>
-                    <Info size={16} color="var(--color-secondary)" /> <span>Agrega <strong>2 productos</strong> al carrito al mismo tiempo; el de menor valor sale GRATIS.</span>
+                    <Gift size={16} color="var(--color-secondary)" /> <span>¡Paga <strong>1 y recibe 2 brownies</strong> de la referencia seleccionada!</span>
                   </div>
                   <div style={{ fontSize: '0.85rem', color: 'var(--color-text-light)', marginTop: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
                     <Timer size={14} color="#ff5252" />
@@ -526,6 +658,20 @@ const Home = () => {
                     <a href={promoConfig.promo2x1GroupLink} target="_blank" rel="noreferrer" style={{ marginTop: '0.5rem', fontSize: '0.9rem', color: 'var(--color-primary)', textDecoration: 'underline', fontWeight: '600' }}>
                       Unirse al grupo de WhatsApp oficial
                     </a>
+                  )}
+
+                  {/* Términos y Condiciones de la Promo */}
+                  {promoConfig.promo2x1Terminos && (
+                    <div style={{ marginTop: '1.5rem', textAlign: 'left', maxWidth: '520px', width: '100%', background: 'rgba(0,0,0,0.15)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 'var(--radius-md)', padding: '0.75rem 1rem' }}>
+                      <div style={{ fontSize: '0.75rem', color: '#b0b0b0', fontWeight: 'bold', marginBottom: '0.4rem', textTransform: 'uppercase', letterSpacing: '0.5px', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+                        <FileText size={12} /> Términos y Condiciones
+                      </div>
+                      <ul style={{ margin: 0, paddingLeft: '1.1rem', fontSize: '0.78rem', color: '#999', lineHeight: 1.55 }}>
+                        {promoConfig.promo2x1Terminos.split('\n').filter(t => t.trim()).map((term, i) => (
+                          <li key={i} style={{ marginBottom: '0.25rem' }}>{term}</li>
+                        ))}
+                      </ul>
+                    </div>
                   )}
                 </div>
               </>

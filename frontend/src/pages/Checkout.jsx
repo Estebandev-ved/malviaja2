@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import useStore, { ACHIEVEMENTS } from '../store/useStore';
 import { useNavigate } from 'react-router-dom';
-import { CheckCircle2, Banknote, ShieldCheck, Copy, Check, Lock, Eye, EyeOff, Clock, Info, QrCode, ArrowLeft, ArrowRight, ShoppingCart, User, CreditCard, Download, ExternalLink, Smartphone, Building2, HelpCircle, Gift, Tag, MapPin, AlertTriangle, Radio } from 'lucide-react';
+import { CheckCircle2, Banknote, ShieldCheck, Copy, Check, Lock, Eye, EyeOff, Clock, Info, QrCode, ArrowLeft, ArrowRight, ShoppingCart, User, CreditCard, Download, ExternalLink, Smartphone, Building2, HelpCircle, Gift, Tag, MapPin, AlertTriangle, Radio, FileText } from 'lucide-react';
 import { authFetch } from '../api';
 import useCountUp from '../utils/useCountUp';
 import AchievementToast from '../components/AchievementToast';
@@ -222,7 +222,7 @@ const PDFReceipt = ({ pedido, referencia, onClose }) => {
 };
 
 const Checkout = () => {
-  const { carrito, clearCart, user, cuponesActivos, usarCupon, promoConfig, fetchPromoConfig } = useStore();
+  const { carrito, clearCart, user, cuponesActivos, usarCupon, promoConfig, fetchPromoConfig, updateCartQuantity, productos } = useStore();
   const navigate = useNavigate();
   const [step, setStep] = useState(0);
   const [referencia, setReferencia] = useState('');
@@ -259,8 +259,10 @@ const Checkout = () => {
   }, [user, navigate]);
 
   useEffect(() => {
-    if (!promoConfig) fetchPromoConfig();
-  }, [promoConfig, fetchPromoConfig]);
+    fetchPromoConfig();
+    const interval = setInterval(fetchPromoConfig, 5000);
+    return () => clearInterval(interval);
+  }, [fetchPromoConfig]);
 
   const [distancia, setDistancia] = useState(0);
   const [isCalculando, setIsCalculando] = useState(false);
@@ -298,14 +300,59 @@ const Checkout = () => {
   const cuponBrownie = cuponesActivos.find(c => c.id === 'brownie');
   const descuentoBrownie = cuponBrownie ? 15000 : 0;
   
-  const cantidadTotal = carrito.reduce((sum, item) => sum + (Number(item.cantidad) || 0), 0);
-  const esPromo2x1 = primerViaje && promoConfig?.promo2x1Enabled && cantidadTotal >= 2;
-  const faltanItemsPara2x1 = primerViaje && promoConfig?.promo2x1Enabled && cantidadTotal === 1;
+  const promoProductsList = (promoConfig?.promoProducts || 'Brownie Fuerte').split(',').map(p => p.trim().toLowerCase());
+  const isAllProducts = promoProductsList.includes('all');
 
-  let descuentoPrimerViaje = 0;
+  const cantidadBrowniesFuerte = carrito.filter(item => {
+    const nameMatch = isAllProducts || promoProductsList.some(p => item.nombre.toLowerCase().includes(p));
+    // El precio debe ser 15000 solo si es 2x1 por defecto, de lo contrario usamos el precio del item
+    return nameMatch;
+  }).reduce((sum, item) => sum + (Number(item.cantidad) || 0), 0);
+  // Lógica de Promoción Flexible
+  const isPromoEnabled = promoConfig?.promo2x1Enabled;
+  const promoTipo = promoConfig?.promoTipo || '2X1';
+  const promoTarget = promoConfig?.promoTarget || 'NUEVOS';
+  const promoValue = promoConfig?.promoValue || 0;
+
+  let isUserEligibleForPromo = true;
+  if (promoTarget === 'NUEVOS') {
+    isUserEligibleForPromo = primerViaje;
+  }
+
+  const isPromoCurrentlyActive = (() => {
+    if (!isPromoEnabled) return false;
+    if (promoConfig?.promoMode === 'MANUAL') return true;
+    try {
+      const now = new Date();
+      const [h, m] = (promoConfig?.promoStartTime || '22:00').split(':').map(Number);
+      const start = new Date(); start.setHours(h, m, 0, 0);
+      const end = new Date(start); end.setHours(start.getHours() + (promoConfig?.promoDuration || 4));
+      return now >= start && now <= end;
+    } catch (e) { return false; }
+  })();
+
+  const esPromo2x1 = isPromoCurrentlyActive && isUserEligibleForPromo && promoTipo === '2X1' && cantidadBrowniesFuerte >= 2;
+  const faltanItemsPara2x1 = isPromoCurrentlyActive && isUserEligibleForPromo && promoTipo === '2X1' && cantidadBrowniesFuerte === 1;
+
+  const precioBrownieFuerte = carrito.find(item => 
+    item.nombre.toLowerCase().includes('brownie fuerte') && Number(item.precio) === 15000
+  )?.precio || 0;
+
+  let descuentoPromo = 0;
   if (esPromo2x1) {
-    const precios = carrito.map(item => Number(item.precio) || 0);
-    descuentoPrimerViaje = Math.min(...precios);
+    descuentoPromo = precioBrownieFuerte;
+  } else if (isPromoCurrentlyActive && isUserEligibleForPromo) {
+    if (promoTipo === 'PERCENT' && promoValue > 0) {
+      descuentoPromo = Math.round((Number(subtotal) || 0) * (promoValue / 100));
+    } else if (promoTipo === 'FIXED' && promoValue > 0) {
+      descuentoPromo = promoValue;
+    }
+  }
+
+  // Si no hay promo especial activa, aplicar el 20% de primer viaje si corresponde
+  let descuentoPrimerViaje = 0;
+  if (descuentoPromo > 0) {
+    descuentoPrimerViaje = descuentoPromo; // Usamos el nombre de la variable para no romper el resto del render
   } else if (primerViaje) {
     descuentoPrimerViaje = Math.round((Number(subtotal) || 0) * 0.20);
   }
@@ -471,7 +518,14 @@ const Checkout = () => {
               <div key={item.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.75rem 0', borderBottom: '1px solid #f0f0f0' }}>
                 <div>
                   <div style={{ fontWeight: 600, color: 'var(--color-primary)' }}>{item.nombre}</div>
-                  <div style={{ fontSize: '0.85rem', color: 'var(--color-text-light)' }}>{item.cantidad}x ${item.precio.toLocaleString()}</div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginTop: '0.3rem' }}>
+                    <button onClick={() => updateCartQuantity(item.id, (item.cantidad || 1) - 1)}
+                      style={{ width: '30px', height: '30px', borderRadius: '50%', border: 'none', background: '#3e2723', color: 'white', cursor: 'pointer', fontWeight: 'bold', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.1rem' }}>−</button>
+                    <span style={{ fontSize: '0.95rem', fontWeight: 700, minWidth: '1.5rem', textAlign: 'center', color: '#3e2723' }}>{item.cantidad}</span>
+                    <button onClick={() => updateCartQuantity(item.id, (item.cantidad || 1) + 1)}
+                      style={{ width: '30px', height: '30px', borderRadius: '50%', border: 'none', background: '#fbc02d', color: '#3e2723', cursor: 'pointer', fontWeight: 'bold', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.1rem' }}>+</button>
+                    <span style={{ fontSize: '0.8rem', color: 'var(--color-text-light)', marginLeft: '0.25rem' }}>x ${item.precio.toLocaleString()} c/u</span>
+                  </div>
                 </div>
                 <div style={{ fontWeight: 'bold' }}>${(item.precio * item.cantidad).toLocaleString()}</div>
               </div>
@@ -507,9 +561,31 @@ const Checkout = () => {
               </div>
             )}
 
-            <button className="btn btn--primary w-full" style={{ marginTop: '1.5rem' }} onClick={() => setStep(1)} disabled={!canGoNext()}>
-              Continuar con Datos <ArrowRight size={18} style={{ marginLeft: '0.5rem' }} />
-            </button>
+            {(esPromo2x1 || faltanItemsPara2x1) && promoConfig?.promo2x1Terminos && (
+              <details style={{ marginTop: '1rem', background: '#fafafa', border: '1px solid #eee', borderRadius: 'var(--radius-md)', padding: '0.6rem 0.8rem', fontSize: '0.78rem', color: '#666', textAlign: 'left' }}>
+                <summary style={{ fontWeight: 'bold', cursor: 'pointer', color: '#5d4037', listStyle: 'none', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+                  <FileText size={13} /> Ver Términos y Condiciones de la Promo
+                </summary>
+                <ul style={{ margin: '0.5rem 0 0', paddingLeft: '1.1rem', lineHeight: 1.55 }}>
+                  {promoConfig.promo2x1Terminos.split('\n').filter(t => t.trim()).map((term, i) => (
+                    <li key={i} style={{ marginBottom: '0.2rem' }}>{term}</li>
+                  ))}
+                </ul>
+                <div style={{ marginTop: '0.5rem', padding: '0.4rem 0.6rem', background: '#fff3e0', borderRadius: '4px', color: '#e65100', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+                  <AlertTriangle size={13} /> No acumulable con otros cupones o promociones.
+                </div>
+              </details>
+            )}
+
+            <div style={{ display: 'flex', gap: '0.75rem', marginTop: '1.5rem' }}>
+              <button className="btn" style={{ flex: 1, border: '1px solid #ddd', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem' }}
+                onClick={() => navigate('/comestibles')}>
+                + Seguir Comprando
+              </button>
+              <button className="btn btn--primary" style={{ flex: 2, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem' }} onClick={() => setStep(1)} disabled={!canGoNext()}>
+                Continuar con Datos <ArrowRight size={18} />
+              </button>
+            </div>
           </div>
         )}
 

@@ -736,3 +736,36 @@
   }
 }
 
+
+/* Promo Banner */
+.promo-banner {
+  transition: all 0.5s ease-in-out;
+}
+
+.promo-banner.active {
+  background: linear-gradient(90deg, #4caf50, #2e7d32) !important;
+  animation: banner-pulse 3s infinite;
+}
+
+@keyframes banner-pulse {
+  0% { box-shadow: 0 4px 20px rgba(76, 175, 80, 0.2); }
+  50% { box-shadow: 0 4px 30px rgba(76, 175, 80, 0.5); }
+  100% { box-shadow: 0 4px 20px rgba(76, 175, 80, 0.2); }
+}
+
+.animate-pulse {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: .7; transform: scale(1.1); }
+}
+
+@media (max-width: 600px) {
+  .promo-banner {
+    flex-direction: column;
+    gap: 0.5rem !important;
+    padding: 1rem !important;
+  }
+}

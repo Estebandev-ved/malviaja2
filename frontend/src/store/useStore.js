@@ -100,6 +100,14 @@ const useStore = create((set, get) => {
     carrito: state.carrito.filter(item => item.id !== productoId)
   })),
 
+  updateCartQuantity: (productoId, cantidad) => set((state) => ({
+    carrito: cantidad <= 0
+      ? state.carrito.filter(item => item.id !== productoId)
+      : state.carrito.map(item =>
+          item.id === productoId ? { ...item, cantidad } : item
+        )
+  })),
+
   clearCart: () => set({ carrito: [] }),
 
   // Gamificación (Puntos y Cupones)
