@@ -173,12 +173,7 @@ const useStore = create((set, get) => {
     return { logrosObtenidos: nuevosLogros, puntosTotales: nuevosPuntos };
   }),
 
-  // Productos del catálogo iniciales para carga ultra-rápida (Optimistic UI)
-  productos: [
-    { id: 1, nombre: 'Brownie Clásico', precio: 15000, dosis: 'Media', descripcion: 'Chocolate belga, dosis perfecta para relajarse.' },
-    { id: 2, nombre: 'Brownie Espacial', precio: 20000, dosis: 'Alta', descripcion: 'Doble chocolate, recomendado para usuarios experimentados.' },
-    { id: 3, nombre: 'Blondie Caramelo', precio: 18000, dosis: 'Media-Alta', descripcion: 'Brownie de chocolate blanco con nueces y caramelo.' }
-  ],
+  productos: [],
   loading: false,
   error: null,
   
