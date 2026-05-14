@@ -6,5 +6,11 @@
 
 .main-content {
   flex: 1;
-  padding-top: 80px; /* Space for fixed navbar */
+  padding-top: 114px; /* Space for fixed TopBanner + Navbar */
+}
+
+@media (max-width: 768px) {
+  .main-content {
+    padding-top: 90px;
+  }
 }

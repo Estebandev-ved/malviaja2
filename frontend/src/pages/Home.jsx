@@ -245,8 +245,9 @@ const Home = () => {
         justifyContent: 'center',
         gap: '1.2rem',
         position: 'sticky',
-        top: 0,
-        zIndex: 1000,
+        top: window.innerWidth > 768 ? '114px' : '90px', // Debajo del Navbar y TopBanner
+        zIndex: 900,
+
         boxShadow: '0 4px 15px rgba(0,0,0,0.6)',
         borderBottom: '1px solid rgba(251, 192, 45, 0.5)'
       }}>

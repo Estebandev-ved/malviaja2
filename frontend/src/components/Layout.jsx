@@ -184,9 +184,12 @@ const Layout = () => {
 
   return (
     <div className="layout">
-      <TopBanner />
-      <Navbar />
+      <div className="fixed-header" style={{ position: 'fixed', top: 0, left: 0, width: '100%', zIndex: 1100 }}>
+        <TopBanner />
+        <Navbar />
+      </div>
       <CartDrawer />
+
 
       <main className="main-content">
         <div className="page-transition" key={location.pathname}>
