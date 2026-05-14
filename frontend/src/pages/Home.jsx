@@ -119,35 +119,36 @@ const Home = () => {
   }, []);
 
   useEffect(() => {
-    const cards = document.querySelectorAll('[data-tilt]');
-    if (!cards.length) return;
-
-    const onMove = (e) => {
-      const card = e.currentTarget;
-      const rect = card.getBoundingClientRect();
-      const x = e.clientX - rect.left;
-      const y = e.clientY - rect.top;
-      const centerX = rect.width / 2;
-      const centerY = rect.height / 2;
-      card.style.transform = `perspective(1000px) rotateX(${((y - centerY) / 10).toFixed(1)}deg) rotateY(${((centerX - x) / 10).toFixed(1)}deg) scale3d(1.02,1.02,1.02)`;
-    };
-
-    const onLeave = (e) => {
-      e.currentTarget.style.transform = 'perspective(1000px) rotateX(0deg) rotateY(0deg) scale3d(1,1,1)';
-    };
-
-    cards.forEach(card => {
-      card.addEventListener('mousemove', onMove);
-      card.addEventListener('mouseleave', onLeave);
-    });
-
-    return () => {
+    const applyTilt = () => {
+      const cards = document.querySelectorAll('[data-tilt]:not(.tilt-applied)');
       cards.forEach(card => {
-        card.removeEventListener('mousemove', onMove);
-        card.removeEventListener('mouseleave', onLeave);
+        card.classList.add('tilt-applied');
+        
+        const onMove = (e) => {
+          const rect = card.getBoundingClientRect();
+          const x = e.clientX - rect.left;
+          const y = e.clientY - rect.top;
+          const centerX = rect.width / 2;
+          const centerY = rect.height / 2;
+          card.style.transform = `perspective(1000px) rotateX(${((y - centerY) / 10).toFixed(1)}deg) rotateY(${((centerX - x) / 10).toFixed(1)}deg) scale3d(1.02,1.02,1.02)`;
+        };
+
+        const onLeave = () => {
+          card.style.transform = 'perspective(1000px) rotateX(0deg) rotateY(0deg) scale3d(1,1,1)';
+        };
+
+        card.addEventListener('mousemove', onMove);
+        card.addEventListener('mouseleave', onLeave);
       });
     };
+
+    applyTilt();
+    const observer = new MutationObserver(applyTilt);
+    observer.observe(document.body, { childList: true, subtree: true });
+
+    return () => observer.disconnect();
   }, []);
+
 
   const handleTilt = (e) => {
     const card = e.currentTarget;
