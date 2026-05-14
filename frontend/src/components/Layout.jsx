@@ -10,9 +10,6 @@ const Layout = () => {
   const location = useLocation();
 
   useEffect(() => {
-    const revealNodes = Array.from(document.querySelectorAll('[data-reveal]'));
-    if (revealNodes.length === 0) return undefined;
-
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
@@ -25,10 +22,27 @@ const Layout = () => {
       { threshold: 0.15 }
     );
 
-    revealNodes.forEach((node) => observer.observe(node));
+    const observeNewNodes = () => {
+      const revealNodes = document.querySelectorAll('[data-reveal]:not(.is-visible)');
+      revealNodes.forEach((node) => observer.observe(node));
+    };
 
-    return () => observer.disconnect();
+    // Observar nodos iniciales
+    observeNewNodes();
+
+    // Observar cambios en el DOM para capturar contenido dinámico (como el catálogo)
+    const mutationObserver = new MutationObserver(() => {
+      observeNewNodes();
+    });
+
+    mutationObserver.observe(document.body, { childList: true, subtree: true });
+
+    return () => {
+      observer.disconnect();
+      mutationObserver.disconnect();
+    };
   }, [location.pathname]);
+
 
   useEffect(() => {
     document.body.classList.add('custom-cursor-enabled');
@@ -93,19 +107,25 @@ const Layout = () => {
   }, [location.pathname]);
 
   useEffect(() => {
-    const staggerGroups = Array.from(document.querySelectorAll('[data-stagger="true"]'));
-    if (staggerGroups.length === 0) return undefined;
-
-    staggerGroups.forEach((group) => {
-      group.classList.add('is-visible');
-      const items = Array.from(group.querySelectorAll('[data-reveal]'));
-      items.forEach((item, index) => {
-        item.style.transitionDelay = `${index * 90}ms`;
+    const applyStagger = () => {
+      const staggerGroups = document.querySelectorAll('[data-stagger="true"]:not(.stagger-applied)');
+      staggerGroups.forEach((group) => {
+        group.classList.add('stagger-applied');
+        group.classList.add('is-visible');
+        const items = group.querySelectorAll('[data-reveal]');
+        items.forEach((item, index) => {
+          item.style.transitionDelay = `${index * 90}ms`;
+        });
       });
-    });
+    };
 
-    return undefined;
+    applyStagger();
+    const mutationObserver = new MutationObserver(applyStagger);
+    mutationObserver.observe(document.body, { childList: true, subtree: true });
+
+    return () => mutationObserver.disconnect();
   }, [location.pathname]);
+
 
   useEffect(() => {
     const handleRipple = (event) => {
