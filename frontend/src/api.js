@@ -1,6 +1,8 @@
 import { auth } from './firebase';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080';
+const IS_LOCAL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+const API_URL = import.meta.env.VITE_API_URL || (IS_LOCAL ? 'http://localhost:8080' : 'https://malviaja2-backend.onrender.com');
+
 
 /**
  * Espera a que Firebase Auth termine de inicializar (restaurar sesión desde
