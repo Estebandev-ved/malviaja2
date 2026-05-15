@@ -88,7 +88,7 @@ public class PedidoService {
                 });
 
         // 2. Calcular total en el servidor de forma segura (ignora el total enviado por el cliente)
-        ResultadoTotal res = calcularTotalSeguro(request.getCarrito(), usuario);
+        ResultadoTotal res = calcularTotalSeguro(request.getCarrito(), usuario, request.getCostoEnvio());
 
         usuario.setDireccionPorDefecto(HtmlUtils.htmlEscape(request.getDireccion()));
         usuario.setTelefonoPorDefecto(HtmlUtils.htmlEscape(request.getTelefono()));
@@ -285,7 +285,7 @@ public class PedidoService {
         }
     }
 
-    private ResultadoTotal calcularTotalSeguro(String carritoJson, Usuario usuario) throws Exception {
+    private ResultadoTotal calcularTotalSeguro(String carritoJson, Usuario usuario, Double costoEnvioFront) throws Exception {
         com.example.malviaja2_backend.model.ConfiguracionGlobal config = configuracionService.obtenerConfiguracion();
         double subtotal = 0.0;
         int cantidadBrowniesFuerte = 0;
@@ -411,8 +411,10 @@ public class PedidoService {
 
         double envio = 0.0;
         if (subtotalPrePromo < config.getDeliveryMinFree()) {
-            envio = 10000.0;
-            log.info("Añadiendo costo de envío fijo de {}", envio);
+            envio = costoEnvioFront != null ? costoEnvioFront : 10000.0;
+            // Evitar envíos negativos
+            if (envio < 0) envio = 10000.0;
+            log.info("Añadiendo costo de envío de {}", envio);
         }
 
         double descuentoTotal = Math.max(0, subtotalPrePromo - subtotal);

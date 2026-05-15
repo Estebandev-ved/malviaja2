@@ -35,6 +35,10 @@ public class PedidoRequest {
 
     private String referencia;
 
+    @NotNull(message = "El costo de envío es obligatorio")
+    @PositiveOrZero(message = "El costo de envío no puede ser negativo")
+    private Double costoEnvio;
+
     public String getUserId() {
         return userId;
     }
@@ -61,5 +65,9 @@ public class PedidoRequest {
 
     public String getCarrito() {
         return carrito;
+    }
+
+    public Double getCostoEnvio() {
+        return costoEnvio;
     }
 }

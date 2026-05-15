@@ -383,6 +383,7 @@ const Checkout = () => {
     form.append("telefono", formData.telefono);
     form.append("fechaEntrega", formData.fechaEntrega);
     form.append("total", totalCalculado);
+    form.append("costoEnvio", costoEnvio);
     form.append("comprobante", comprobante);
     form.append("carrito", JSON.stringify(carrito));
     form.append("referencia", referencia);
