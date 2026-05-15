@@ -86,6 +86,38 @@ const useStore = create((set, get) => {
   
   addToCart: (producto) => set((state) => {
     const existingItem = state.carrito.find(item => item.id === producto.id);
+    
+    // Lógica 2x1 Automática al agregar
+    const pConfig = state.promoConfig;
+    const isPromoEnabled = pConfig?.promo2x1Enabled;
+    const isPromoCurrentlyActive = (() => {
+      if (!isPromoEnabled) return false;
+      if (pConfig?.promoMode === 'MANUAL') return true;
+      try {
+        const now = new Date();
+        const [h, m] = (pConfig?.promoStartTime || '22:00').split(':').map(Number);
+        const start = new Date(); start.setHours(h, m, 0, 0);
+        const end = new Date(start); end.setHours(start.getHours() + (pConfig?.promoDuration || 4));
+        return now >= start && now <= end;
+      } catch (e) { return false; }
+    })();
+
+    let isUserEligibleForPromo = true;
+    if (pConfig?.promoTarget === 'NUEVOS') {
+      isUserEligibleForPromo = state.user ? state.user.primerCompraRealizada === false : true;
+    }
+
+    const isEligibleProduct = (() => {
+      const list = (pConfig?.promoProducts || 'Brownie Fuerte').split(',').map(p => p.trim().toLowerCase());
+      if (list.includes('all')) return true;
+      return list.some(p => producto.nombre.toLowerCase().includes(p));
+    })();
+
+    let qtyToAdd = 1;
+    if (!existingItem && isPromoCurrentlyActive && isUserEligibleForPromo && pConfig?.promoTipo === '2X1' && isEligibleProduct) {
+      qtyToAdd = 2; // Añade 2 automáticamente si cumple y no lo tenía en el carrito
+    }
+
     if (existingItem) {
       return {
         carrito: state.carrito.map(item =>
@@ -93,7 +125,7 @@ const useStore = create((set, get) => {
         )
       };
     }
-    return { carrito: [...state.carrito, { ...producto, cantidad: 1 }] };
+    return { carrito: [...state.carrito, { ...producto, cantidad: qtyToAdd }] };
   }),
 
   removeFromCart: (productoId) => set((state) => ({

@@ -336,18 +336,6 @@ const Checkout = () => {
   const esPromo2x1 = isPromoCurrentlyActive && isUserEligibleForPromo && promoTipo === '2X1' && cantidadBrowniesFuerte >= 2;
   const faltanItemsPara2x1 = isPromoCurrentlyActive && isUserEligibleForPromo && promoTipo === '2X1' && cantidadBrowniesFuerte === 1;
 
-  useEffect(() => {
-    if (faltanItemsPara2x1) {
-      const brownieItem = carrito.find(item => {
-        const nameMatch = isAllProducts || promoProductsList.some(p => item.nombre.toLowerCase().includes(p));
-        return nameMatch;
-      });
-      if (brownieItem) {
-        updateCartQuantity(brownieItem.id, 2);
-      }
-    }
-  }, [faltanItemsPara2x1, carrito, updateCartQuantity, isAllProducts, promoProductsList]);
-
   const precioBrownieFuerte = carrito.find(item => 
     item.nombre.toLowerCase().includes('brownie fuerte') && Number(item.precio) === 15000
   )?.precio || 0;
