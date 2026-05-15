@@ -290,6 +290,7 @@ const Home = () => {
         <button 
           onClick={handlePromoClick} 
           disabled={!timeLeft.active}
+          className="promo-action-btn"
           style={{ 
             background: timeLeft.active ? 'var(--color-secondary)' : 'rgba(255,255,255,0.1)', 
             color: timeLeft.active ? 'var(--color-primary-dark)' : 'rgba(255,255,255,0.5)', 
@@ -303,13 +304,15 @@ const Home = () => {
             textTransform: 'uppercase',
             letterSpacing: '1px',
             boxShadow: timeLeft.active ? '0 0 20px rgba(251, 192, 45, 0.5)' : 'none',
-            transform: timeLeft.active ? 'scale(1)' : 'scale(0.95)'
+            transform: timeLeft.active ? 'scale(1)' : 'scale(0.95)',
+            width: window.innerWidth < 768 ? '90%' : 'auto',
+            maxWidth: window.innerWidth < 768 ? '350px' : 'none'
           }}
         >
           {timeLeft.active ? (
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', justifyContent: 'center' }}>
               <Zap size={16} fill="currentColor" />
-              <span>Aprovechar Promo</span>
+              <span>RESERVA TU COMBO 2x1</span>
             </div>
           ) : (
             `Promo en ${String(timeLeft.h).padStart(2, '0')}:${String(timeLeft.m).padStart(2, '0')}:${String(timeLeft.s).padStart(2, '0')}`

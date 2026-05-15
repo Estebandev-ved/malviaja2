@@ -9,7 +9,7 @@ const TopBanner = () => {
         <div className="top-banner__content">
           <AlertCircle size={16} className="top-banner__icon" />
           <span className="top-banner__text">
-            <strong>AVISO:</strong> Pedidos abiertos hasta mañana en la tarde o hasta agotar existencias. <strong>Despachos mañana.</strong>
+            <strong>INFO:</strong> Pedidos abiertos hasta mañana en la tarde o agotar existencias. <strong>Despachos mañana.</strong>
           </span>
           <Clock size={16} className="top-banner__icon top-banner__icon--right" />
         </div>
