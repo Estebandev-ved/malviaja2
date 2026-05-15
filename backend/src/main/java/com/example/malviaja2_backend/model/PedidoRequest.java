@@ -35,8 +35,7 @@ public class PedidoRequest {
 
     private String referencia;
 
-    @NotNull(message = "El costo de envío es obligatorio")
-    @PositiveOrZero(message = "El costo de envío no puede ser negativo")
+    // Opcional: el backend lo calcula si no se envía
     private Double costoEnvio;
 
     public String getUserId() {

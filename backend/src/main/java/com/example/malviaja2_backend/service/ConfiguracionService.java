@@ -64,6 +64,11 @@ public class ConfiguracionService {
         if (conf.getPromoProducts() == null) conf.setPromoProducts("Brownie Fuerte");
         if (conf.getPromoMode() == null) conf.setPromoMode("PROGRAMADA");
         if (conf.getPromoDuration() == null) conf.setPromoDuration(4);
+        // Null-checks para campos de envío
+        if (conf.getDeliveryMinFree() == null) conf.setDeliveryMinFree(150000.0);
+        if (conf.getDeliveryPricePerKm() == null) conf.setDeliveryPricePerKm(1500.0);
+        if (conf.getDeliveryMaxRadius() == null) conf.setDeliveryMaxRadius(50.0);
+        if (conf.getCompraMinima() == null) conf.setCompraMinima(15000.0);
         actualizarEstadoPromo(conf);
         return conf;
     }

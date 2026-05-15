@@ -410,14 +410,23 @@ public class PedidoService {
         }
 
         double envio = 0.0;
-        if (subtotalPrePromo < config.getDeliveryMinFree()) {
-            envio = costoEnvioFront != null ? costoEnvioFront : 10000.0;
-            // Evitar envíos negativos
-            if (envio < 0) envio = 10000.0;
-            log.info("Añadiendo costo de envío de {}", envio);
+        // deliveryMinFree: umbral para envío gratis. Si no está configurado, usar 150000 por defecto.
+        double minFree = config.getDeliveryMinFree() != null ? config.getDeliveryMinFree() : 150000.0;
+        log.info("Subtotal pre-promo: {}, Umbral envío gratis: {}", subtotalPrePromo, minFree);
+        if (subtotalPrePromo < minFree) {
+            // Si el frontend envió un costo de envío válido (>0), usarlo. Si no, cobrar $10,000 fijo.
+            if (costoEnvioFront != null && costoEnvioFront > 0) {
+                envio = costoEnvioFront;
+            } else {
+                envio = 10000.0;
+            }
+            log.info("Envío aplicado: {} (frontend envió: {})", envio, costoEnvioFront);
+        } else {
+            log.info("Envío gratis (subtotal {} >= umbral {})", subtotalPrePromo, minFree);
         }
 
         double descuentoTotal = Math.max(0, subtotalPrePromo - subtotal);
+        log.info("TOTAL FINAL -> subtotal={}, envio={}, descuento={}, TOTAL={}", subtotal, envio, descuentoTotal, subtotal + envio);
         return new ResultadoTotal(subtotal + envio, subtotalPrePromo, envio, descuentoTotal);
     }
 
