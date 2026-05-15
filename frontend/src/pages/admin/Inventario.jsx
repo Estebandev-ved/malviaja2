@@ -114,8 +114,8 @@ const Inventario = () => {
               </>
             )}
           </div>
-          <button onClick={fetchProductos} disabled={loading} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.5rem 1rem', background: 'white', border: '1px solid #ddd', borderRadius: 'var(--radius-md)', cursor: 'pointer', fontWeight: 'bold', color: 'var(--color-primary-dark)' }}>
-            <RefreshCw size={16} className={loading ? 'animate-spin' : ''} />
+          <button onClick={storeFetch} disabled={localLoading} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.5rem 1rem', background: 'white', border: '1px solid #ddd', borderRadius: 'var(--radius-md)', cursor: 'pointer', fontWeight: 'bold', color: 'var(--color-primary-dark)' }}>
+            <RefreshCw size={16} className={localLoading ? 'animate-spin' : ''} />
           </button>
         </div>
       </div>

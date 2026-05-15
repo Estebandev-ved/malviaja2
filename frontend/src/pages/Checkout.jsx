@@ -229,8 +229,10 @@ const Checkout = () => {
   const [formData, setFormData] = useState({
     nombre: user ? user.displayName : '',
     direccion: '',
-    telefono: ''
+    telefono: '',
+    fechaEntrega: ''
   });
+  const minDate = new Date(Date.now() + 86400000).toISOString().split('T')[0];
   const [comprobante, setComprobante] = useState(null);
   const [comprobantePreview, setComprobantePreview] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -334,6 +336,18 @@ const Checkout = () => {
   const esPromo2x1 = isPromoCurrentlyActive && isUserEligibleForPromo && promoTipo === '2X1' && cantidadBrowniesFuerte >= 2;
   const faltanItemsPara2x1 = isPromoCurrentlyActive && isUserEligibleForPromo && promoTipo === '2X1' && cantidadBrowniesFuerte === 1;
 
+  useEffect(() => {
+    if (faltanItemsPara2x1) {
+      const brownieItem = carrito.find(item => {
+        const nameMatch = isAllProducts || promoProductsList.some(p => item.nombre.toLowerCase().includes(p));
+        return nameMatch;
+      });
+      if (brownieItem) {
+        updateCartQuantity(brownieItem.id, 2);
+      }
+    }
+  }, [faltanItemsPara2x1, carrito, updateCartQuantity, isAllProducts, promoProductsList]);
+
   const precioBrownieFuerte = carrito.find(item => 
     item.nombre.toLowerCase().includes('brownie fuerte') && Number(item.precio) === 15000
   )?.precio || 0;
@@ -359,7 +373,7 @@ const Checkout = () => {
 
   let totalCalculado = (Number(subtotal) || 0) + (Number(costoEnvio) || 0) - (Number(descuentoBrownie) || 0) - (Number(descuentoPrimerViaje) || 0);
   if (isNaN(totalCalculado) || totalCalculado < 0) totalCalculado = 0;
-  const cumpleMinimo = subtotal >= 15000;
+  const cumpleMinimo = subtotal >= 14990;
 
   useEffect(() => {
     if (!user && !success) {
@@ -379,6 +393,7 @@ const Checkout = () => {
     form.append("nombre", formData.nombre);
     form.append("direccion", formData.direccion);
     form.append("telefono", formData.telefono);
+    form.append("fechaEntrega", formData.fechaEntrega);
     form.append("total", totalCalculado);
     form.append("comprobante", comprobante);
     form.append("carrito", JSON.stringify(carrito));
@@ -476,7 +491,7 @@ const Checkout = () => {
 
   const canGoNext = () => {
     if (step === 0) return carrito.length > 0;
-    if (step === 1) return formData.nombre && formData.direccion && formData.telefono;
+    if (step === 1) return formData.nombre && formData.direccion && formData.telefono && formData.fechaEntrega;
     return true;
   };
 
@@ -514,6 +529,10 @@ const Checkout = () => {
         {step === 0 && (
           <div className="glass" style={{ padding: '2rem', borderRadius: 'var(--radius-lg)' }}>
             <h3 style={{ color: 'var(--color-primary-dark)', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}><ShoppingCart size={24} /> Tu Carrito</h3>
+            <div style={{ background: '#e3f2fd', border: '1px solid #90caf9', borderRadius: 'var(--radius-sm)', padding: '0.75rem', fontSize: '0.85rem', color: '#1565c0', display: 'flex', alignItems: 'flex-start', gap: '0.4rem', marginBottom: '1rem' }}>
+              <Info size={18} style={{ flexShrink: 0, marginTop: '1px' }} />
+              <span><strong>Modo PRE-VENTA:</strong> Estás comprando en modo PRE-VENTA. Tu pedido será horneado y despachado a partir de mañana.</span>
+            </div>
             {carrito.map(item => (
               <div key={item.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.75rem 0', borderBottom: '1px solid #f0f0f0' }}>
                 <div>
@@ -600,6 +619,10 @@ const Checkout = () => {
                 <p style={{ fontSize: '0.75rem', color: 'var(--color-text-light)', marginTop: '0.25rem' }}>El costo de envío se calculará automáticamente ($1,500/km desde nuestra sede).</p>
               </div>
               <input type="tel" placeholder="Número de Teléfono (WhatsApp)" required className="checkout-input" value={formData.telefono} onChange={e => setFormData({...formData, telefono: e.target.value})} />
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                <label style={{ fontSize: '0.85rem', fontWeight: 'bold', color: 'var(--color-primary-dark)' }}>¿Para cuándo necesitas tu pedido?</label>
+                <input type="date" required className="checkout-input" value={formData.fechaEntrega} min={minDate} onChange={e => setFormData({...formData, fechaEntrega: e.target.value})} />
+              </div>
               <div style={{ display: 'flex', gap: '1rem', marginTop: '0.5rem' }}>
                 <button className="btn" style={{ border: '1px solid #ddd', flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }} onClick={() => setStep(0)}>
                   <ArrowLeft size={18} /> Atrás
@@ -720,6 +743,11 @@ const Checkout = () => {
                     <div style={{ fontSize: '0.8rem', opacity: 0.9 }}>Añade otro producto al carrito y te sale GRATIS (el de menor o igual valor).</div>
                   </div>
                 )}
+
+                <div style={{ background: '#e3f2fd', border: '1px solid #90caf9', borderRadius: 'var(--radius-sm)', padding: '0.75rem', fontSize: '0.85rem', color: '#1565c0', display: 'flex', alignItems: 'flex-start', gap: '0.4rem', marginTop: '1rem' }}>
+                  <Info size={18} style={{ flexShrink: 0, marginTop: '1px' }} />
+                  <span><strong>Modo PRE-VENTA:</strong> Tu pedido será horneado y despachado a partir de mañana. Fecha elegida: {formData.fechaEntrega}</span>
+                </div>
 
                 <hr style={{ border: 'none', borderTop: '1px dashed #fbc02d', margin: '1rem 0' }} />
                 <div style={{
