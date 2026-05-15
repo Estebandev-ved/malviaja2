@@ -24,8 +24,9 @@ const UsuariosAdmin = () => {
 
       if (pedidosRes.ok) {
         const pedidosData = await pedidosRes.json();
+        const pedidosArray = Array.isArray(pedidosData) ? pedidosData : (pedidosData.content || []);
         const grouped = {};
-        pedidosData.forEach(p => {
+        pedidosArray.forEach(p => {
           const uid = p.usuario?.id;
           if (uid) {
             if (!grouped[uid]) grouped[uid] = [];
