@@ -87,7 +87,7 @@ const ConfigAdmin = () => {
           }));
         }
       } catch (e) {
-        console.error("Error al cargar configuración", e);
+        if (e.name !== 'AbortError') console.error("Error al cargar configuración", e);
       } finally {
         setIsLoading(false);
       }

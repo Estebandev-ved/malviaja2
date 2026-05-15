@@ -52,7 +52,7 @@ const Home = () => {
           setNoticias(data.slice(0, 6));
         }
       } catch (e) {
-        console.warn('No se pudo cargar noticias publicas:', e.message);
+        if (e.name !== 'AbortError') console.warn('No se pudo cargar noticias publicas:', e.message);
       }
     };
     loadNoticias();
@@ -69,7 +69,7 @@ const Home = () => {
           setRecentPedidos(Array.isArray(data) ? data.slice(0, 4) : []);
         }
       } catch (e) {
-        console.warn('No se pudo cargar pedidos recientes:', e.message);
+        if (e.name !== 'AbortError') console.warn('No se pudo cargar pedidos recientes:', e.message);
       } finally {
         setLoadingPedidos(false);
       }
@@ -89,7 +89,7 @@ const Home = () => {
           setPromoConfig(data);
         }
       } catch (e) {
-        console.warn('No se pudo cargar promo publica:', e.message);
+        if (e.name !== 'AbortError') console.warn('No se pudo cargar promo publica:', e.message);
       }
     };
     loadPromo();

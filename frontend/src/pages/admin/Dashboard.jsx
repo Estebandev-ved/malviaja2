@@ -58,7 +58,7 @@ const Dashboard = () => {
         setUsuarios(data);
       }
     } catch (e) {
-      console.warn("Backend no disponible para datos admin:", e.message);
+      if (e.name !== 'AbortError') console.warn("Backend no disponible para datos admin:", e.message);
     } finally {
       setLoading(false);
     }

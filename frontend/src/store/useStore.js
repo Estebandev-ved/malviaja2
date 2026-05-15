@@ -55,7 +55,7 @@ const useStore = create((set, get) => {
             set({ user: { ...userData, ...profileData } });
           }
         } catch (e) {
-          console.warn('Backend no disponible para perfil:', e.message);
+          if (e.name !== 'AbortError') console.warn('Backend no disponible para perfil:', e.message);
         }
       } else {
         set({ user: null, authLoading: false });
@@ -222,7 +222,7 @@ const useStore = create((set, get) => {
         set({ promoConfig: data });
       }
     } catch (e) {
-      console.warn('No se pudo cargar promoConfig en store:', e.message);
+      if (e.name !== 'AbortError') console.warn('No se pudo cargar promoConfig en store:', e.message);
     }
   },
   
@@ -238,7 +238,7 @@ const useStore = create((set, get) => {
       const data = await response.json();
       set({ productos: data, loading: false });
     } catch (error) {
-      console.warn('No se pudieron cargar productos del backend:', error.message);
+      if (error.name !== 'AbortError') console.warn('No se pudieron cargar productos del backend:', error.message);
       // Solo usar fallback si NO hay datos en el store y falló la llamada
       const current = get().productos;
       if (current.length === 0) {
