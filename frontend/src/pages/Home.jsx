@@ -648,7 +648,7 @@ const Home = () => {
                     cursor: 'pointer',
                     border: 'none'
                   }}>
-                    <ShoppingBag size={22} /> Aprovechar Promo y Comprar
+                    <ShoppingBag size={22} /> Reserva tu Combo 2x1
                   </button>
                   
                   <div style={{ fontSize: '0.9rem', color: '#b0b0b0', marginTop: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.4rem', background: 'rgba(0,0,0,0.2)', padding: '0.4rem 0.8rem', borderRadius: '50px', border: '1px solid rgba(255,255,255,0.05)' }}>

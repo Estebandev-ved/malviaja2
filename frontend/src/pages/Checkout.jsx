@@ -780,7 +780,12 @@ const Checkout = () => {
                     </div>
                   )}
 
-                  <button type="submit" className="btn btn--primary" style={{ width: '100%', fontSize: '1.2rem', padding: '1rem' }} disabled={isSubmitting || !cumpleMinimo}>
+                  <div style={{ background: '#f5f5f5', border: '1px solid #ddd', borderRadius: 'var(--radius-sm)', padding: '0.75rem', fontSize: '0.85rem', color: 'var(--color-primary-dark)', textAlign: 'center', marginBottom: '0.5rem' }}>
+                    <p style={{ margin: 0, fontWeight: 'bold' }}>⚠️ Política del Club: "Venta que no está paga, no es venta"</p>
+                    <p style={{ margin: '0.25rem 0 0', fontSize: '0.75rem', opacity: 0.8 }}>El botón se activará solo cuando subas tu comprobante.</p>
+                  </div>
+
+                  <button type="submit" className="btn btn--primary" style={{ width: '100%', fontSize: '1.2rem', padding: '1rem', opacity: (!comprobante || isSubmitting || !cumpleMinimo) ? 0.6 : 1 }} disabled={isSubmitting || !cumpleMinimo || !comprobante}>
                     {isSubmitting ? 'Enviando Pedido...' : 'Enviar Pedido y Comprobante'}
                   </button>
                 </form>
