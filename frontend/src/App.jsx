@@ -29,6 +29,7 @@ import MapaEntregas from './pages/admin/MapaEntregas';
 import AceptarPedidos from './pages/admin/AceptarPedidos';
 import WebhookSimulator from './pages/admin/WebhookSimulator';
 import NoticiasAdmin from './pages/admin/Noticias';
+import RadarClientes from './pages/admin/RadarClientes';
 import CustomCursor from './components/CustomCursor';
 
 function App() {
@@ -55,6 +56,7 @@ function App() {
           <Route index element={<Dashboard />} />
           <Route path="productos" element={<ProductosAdmin />} />
           <Route path="usuarios" element={<UsuariosAdmin />} />
+          <Route path="radar" element={<RadarClientes />} />
           <Route path="config" element={<ConfigAdmin />} />
           <Route path="reportes" element={<Reportes />} />
           <Route path="cupones" element={<Cupones />} />

@@ -390,6 +390,14 @@ const Checkout = () => {
 
     try {
       const response = await authFetch('/api/pedidos/checkout', { method: 'POST', body: form });
+      
+      if (response.status === 400) {
+        const errorData = await response.json().catch(() => ({}));
+        console.error("Validation Error:", errorData);
+        alert(`⚠️ Datos inválidos: ${errorData.message || JSON.stringify(errorData)}`);
+        setIsSubmitting(false); return;
+      }
+      
       if (response.status === 409) {
         const errorData = await response.json().catch(() => ({}));
         const mensaje = errorData.error && errorData.error.includes('Stock')
@@ -399,7 +407,8 @@ const Checkout = () => {
         setIsSubmitting(false); return;
       }
       if (!response.ok) {
-        throw new Error('Error del servidor al procesar el pedido. Intenta de nuevo.');
+        const errText = await response.text();
+        throw new Error(`Error ${response.status}: ${errText}`);
       }
       const data = await response.json();
       const refBackend = data.referencia || referencia;

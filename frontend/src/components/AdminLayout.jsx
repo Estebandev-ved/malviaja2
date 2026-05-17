@@ -1,5 +1,5 @@
 import { Outlet, Link, useLocation, useNavigate, Navigate } from 'react-router-dom';
-import { LayoutDashboard, ShoppingBag, Users, Settings, LogOut, ShieldAlert, Loader2, TrendingUp, Tag, Package, MessageSquare, Activity, Map, ClipboardCheck, Menu, X } from 'lucide-react';
+import { LayoutDashboard, ShoppingBag, Users, Settings, LogOut, ShieldAlert, Loader2, TrendingUp, Tag, Package, MessageSquare, Activity, Map, ClipboardCheck, Menu, X, Target } from 'lucide-react';
 import useStore from '../store/useStore';
 import { useState } from 'react';
 import './AdminLayout.css';
@@ -39,6 +39,7 @@ const AdminLayout = () => {
     { name: 'Dashboard', path: '/admin', icon: <LayoutDashboard size={20} /> },
     { name: 'Productos', path: '/admin/productos', icon: <ShoppingBag size={20} /> },
     { name: 'Usuarios', path: '/admin/usuarios', icon: <Users size={20} /> },
+    { name: 'Radar de Clientes', path: '/admin/radar', icon: <Target size={20} /> },
     { name: 'Reportes', path: '/admin/reportes', icon: <TrendingUp size={20} /> },
     { name: 'Cupones', path: '/admin/cupones', icon: <Tag size={20} /> },
     { name: 'Inventario', path: '/admin/inventario', icon: <Package size={20} /> },

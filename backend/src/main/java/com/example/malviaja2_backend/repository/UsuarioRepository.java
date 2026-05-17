@@ -13,4 +13,5 @@ public interface UsuarioRepository extends JpaRepository<Usuario, Long> {
     Optional<Usuario> findByEmailIgnoreCase(String email);
     long countByActivoTrue();
     List<Usuario> findByActivoTrueAndUltimaCompraBefore(LocalDateTime limitDate);
+    List<Usuario> findByPrimerCompraRealizadaFalse();
 }

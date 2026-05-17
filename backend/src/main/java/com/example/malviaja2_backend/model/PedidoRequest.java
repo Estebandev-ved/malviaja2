@@ -26,7 +26,7 @@ public class PedidoRequest {
 
     @NotNull(message = "El total es obligatorio")
     @Positive(message = "El total debe ser un valor positivo")
-    @DecimalMax(value = "9999999.99", message = "El total excede el máximo permitido")
+    @DecimalMax(value = "999999999.99", message = "El total excede el máximo permitido")
     private Double total;
 
     @NotBlank(message = "El carrito no puede estar vacío")

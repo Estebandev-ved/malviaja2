@@ -71,6 +71,7 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.POST,   "/api/productos").hasAuthority("ADMIN")
                 .requestMatchers(HttpMethod.PUT,    "/api/productos/**").hasAuthority("ADMIN")
                 .requestMatchers(HttpMethod.DELETE, "/api/productos/**").hasAuthority("ADMIN")
+                .requestMatchers("/api/usuarios/**").hasAuthority("ADMIN")
                 .anyRequest().authenticated()
             )
             .addFilterBefore(firebaseAuthFilter, UsernamePasswordAuthenticationFilter.class);

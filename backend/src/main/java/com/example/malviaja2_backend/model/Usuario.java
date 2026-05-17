@@ -41,6 +41,9 @@ public class Usuario {
     @Column(name = "ultima_compra")
     private LocalDateTime ultimaCompra;
 
+    @Column(name = "recovery_email_sent")
+    private Boolean recoveryEmailSent = false;
+
     @Column(name = "created_at")
     private LocalDateTime createdAt;
 
@@ -107,5 +110,13 @@ public class Usuario {
 
     public void setPromo2x1Usada(Boolean promo2x1Usada) {
         this.promo2x1Usada = promo2x1Usada;
+    }
+
+    public Boolean getRecoveryEmailSent() {
+        return recoveryEmailSent != null ? recoveryEmailSent : false;
+    }
+
+    public void setRecoveryEmailSent(Boolean recoveryEmailSent) {
+        this.recoveryEmailSent = recoveryEmailSent;
     }
 }

@@ -48,4 +48,13 @@ public class ProductoService {
             log.info("Version inicializada a 0 para producto #{} (legacy data)", id);
         }
     }
+
+    @jakarta.annotation.PostConstruct
+    @org.springframework.transaction.annotation.Transactional
+    public void inicializarVersionesLegacy() {
+        int actualizados = productoRepository.inicializarVersionesGlobales();
+        if (actualizados > 0) {
+            log.info("Inicializadas {} versiones null en la tabla de productos (legacy data)", actualizados);
+        }
+    }
 }

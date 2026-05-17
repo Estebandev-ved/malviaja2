@@ -129,8 +129,21 @@ public class PedidoService {
         pedido = pedidoRepository.save(pedido);
         log.info("✅ Pedido #{} guardado en BD. Cliente: {}", pedido.getId(), usuario.getEmail());
 
-        // 4. Notificar por Telegram (no bloquea aunque falle)
+        // 4. Notificar por Telegram y Email (no bloquea aunque falle)
         notificarTelegram(pedido, request, comprobante, extraction);
+        
+        try {
+            emailNotificationService.enviarConfirmacionPedido(
+                usuario.getEmail(), 
+                pedido.getNombreReceptor(), 
+                pedido.getId(), 
+                pedido.getTotal(), 
+                pedido.getCarritoJson()
+            );
+        } catch (Exception e) {
+            log.warn("Error al enviar email de confirmación: {}", e.getMessage());
+        }
+
         return pedido;
     }
 
@@ -466,7 +479,7 @@ public class PedidoService {
                 }
             }
 
-            if ("PREPARANDO".equals(nuevoEstado) || "CANCELADO".equals(nuevoEstado)) {
+            if ("PREPARANDO".equals(nuevoEstado) || "CANCELADO".equals(nuevoEstado) || "ACEPTADO".equals(nuevoEstado)) {
                 String email = pedido.getUsuario() != null ? pedido.getUsuario().getEmail() : null;
                 String nombre = pedido.getNombreReceptor() != null ? pedido.getNombreReceptor() : "Cliente";
                 String comprobanteUrl = "https://via.placeholder.com/640x420?text=Comprobante+Rechazado";
